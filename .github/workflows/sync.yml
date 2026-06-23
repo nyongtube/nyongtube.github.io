@@ -1,0 +1,42 @@
+name: sync-captions
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'     # 30분마다 자동 실행 (UTC 기준)
+  workflow_dispatch:            # 깃허브에서 "지금 실행" 버튼
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Pull Google Sheets tabs → CSV
+        run: |
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1439007533&single=true&output=csv" -o ginger.csv
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1225639265&single=true&output=csv" -o human.csv
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=244099713&single=true&output=csv" -o nubi.csv
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=2094671212&single=true&output=csv" -o dokgam.csv
+
+      - name: Sanity check (must look like CSV, not an error page)
+        run: |
+          for f in ginger.csv human.csv nubi.csv dokgam.csv; do
+            head -c 1 "$f" | grep -q '<' && { echo "::error::$f looks like HTML, not CSV. Check the sheet is published."; exit 1; } || true
+            echo "$f: $(wc -c < "$f") bytes"
+          done
+
+      - name: Commit if changed
+        run: |
+          git config user.name "caption-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ginger.csv human.csv nubi.csv dokgam.csv
+          if git diff --staged --quiet; then
+            echo "변경 없음 — 커밋 건너뜀"
+          else
+            git commit -m "auto: sync captions from Google Sheets"
+            git push
+          fi
