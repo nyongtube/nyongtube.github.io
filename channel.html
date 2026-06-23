@@ -50,9 +50,8 @@
   .pf-head{display:flex;align-items:stretch;width:100%;text-align:left;border:0;background:transparent;
     padding:0;cursor:pointer;font:inherit;color:inherit;}
   .pf .b{width:5px;flex-shrink:0;}
-  .pf-head .in{flex:1;min-width:0;padding:11px 12px;}
-  .pf-head .pl{font-size:.7rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin-bottom:3px;}
-  .pf-head .pv{font-size:.82rem;color:#6B5E52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pf-head .in{flex:1;min-width:0;padding:13px 12px;display:flex;align-items:center;}
+  .pf-head .pl{font-size:.78rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}
   .pf-chev{display:flex;align-items:center;padding:0 13px;color:var(--muted);font-size:.9rem;
     flex-shrink:0;transition:transform .2s;}
   .pf.open .pf-chev{transform:rotate(180deg);}
@@ -187,7 +186,7 @@ function buildCard(i){
     btns += `<div class="pf ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
       <button class="pf-head">
         <span class="b"></span>
-        <span class="in"><span class="pl">${p.label}</span><span class="pv">${escapeHtml(preview(val))}</span></span>
+        <span class="in"><span class="pl">${p.label}</span></span>
         <span class="pf-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></span>
       </button>
       <div class="pf-body">
