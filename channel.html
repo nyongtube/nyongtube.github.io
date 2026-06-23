@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex">
+<title>캡션 복사기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF4EC; --card:#FFFFFF; --ink:#2A2320; --muted:#9A8C7E;
+    --accent:#E0792E; --accent-deep:#C0392B; --line:#ECE2D6;
+    --tiktok:#161823; --instagram:#C13584; --ytt:#CC0000; --ytd:#E0594B;
+    --ok:#2E9E6B; --radius:16px; font-size:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    line-height:1.45;padding-bottom:60px;}
+  .top{position:sticky;top:0;z-index:10;
+    background:linear-gradient(180deg,var(--paper) 72%,rgba(251,244,236,0));padding:14px 16px 10px;}
+  .bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .back{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
+    display:grid;place-items:center;text-decoration:none;color:var(--ink);font-size:18px;flex-shrink:0;}
+  .dot{width:30px;height:30px;border-radius:9px;background:var(--accent);
+    display:grid;place-items:center;font-size:17px;box-shadow:0 2px 0 var(--accent-deep);flex-shrink:0;}
+  .ttl{font-family:"Fredoka",sans-serif;font-weight:700;font-size:1.12rem;margin:0;letter-spacing:-.01em;flex:1;min-width:0;}
+  .ttl small{display:block;color:var(--muted);font-size:.72rem;font-weight:400;margin-top:1px;}
+  .search{position:relative;}
+  .search input{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:13px;
+    padding:13px 14px 13px 40px;font-size:16px;color:var(--ink);outline:none;transition:border-color .15s;}
+  .search input:focus{border-color:var(--accent);}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.45;}
+  .wrap{padding:4px 16px 0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:11px;overflow:hidden;}
+  .head{display:flex;align-items:center;gap:10px;padding:15px;cursor:pointer;user-select:none;}
+  .num{font-family:"Fredoka",sans-serif;font-weight:600;color:var(--accent);font-size:.85rem;min-width:22px;}
+  .names{flex:1;min-width:0;}
+  .nm{font-weight:600;font-size:.97rem;word-break:break-word;}
+  .badge{font-size:.66rem;font-weight:600;color:#fff;background:var(--muted);padding:3px 7px;border-radius:999px;white-space:nowrap;}
+  .badge.up{background:var(--ok);} .badge.new{background:var(--accent);}
+  .chev{transition:transform .2s;opacity:.4;flex-shrink:0;}
+  .card.open .chev{transform:rotate(180deg);}
+  .body{display:none;padding:0 12px 12px;}
+  .card.open .body{display:block;}
+  .btn{display:flex;align-items:stretch;width:100%;text-align:left;border:1px solid var(--line);
+    background:#FCFAF7;border-radius:12px;margin-top:8px;padding:0;overflow:hidden;cursor:pointer;transition:transform .08s;}
+  .btn:active{transform:scale(.985);}
+  .btn .b{width:5px;flex-shrink:0;}
+  .btn .in{flex:1;min-width:0;padding:11px 12px;}
+  .btn .pl{font-size:.7rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin-bottom:3px;}
+  .btn .pv{font-size:.82rem;color:#6B5E52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .btn .ac{display:flex;align-items:center;padding:0 13px;font-size:.74rem;font-weight:700;color:var(--accent-deep);
+    flex-shrink:0;border-left:1px dashed var(--line);background:#fff;}
+  .btn.copied .ac{color:var(--ok);} .btn.copied{background:#F1FAF4;border-color:#BFE6CE;}
+  .t-tiktok .b{background:var(--tiktok);} .t-tiktok .pl{color:var(--tiktok);}
+  .t-instagram .b{background:var(--instagram);} .t-instagram .pl{color:var(--instagram);}
+  .t-ytt .b{background:var(--ytt);} .t-ytt .pl{color:var(--ytt);}
+  .t-ytd .b{background:var(--ytd);} .t-ytd .pl{color:var(--ytd);}
+  .state{text-align:center;color:var(--muted);padding:40px 20px;font-size:.9rem;}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+    padding:11px 20px;border-radius:999px;font-size:.86rem;font-weight:600;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.2);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);} .toast.err{background:var(--accent-deep);}
+  .hint{color:var(--muted);font-size:.72rem;text-align:center;padding:6px 20px 0;}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="bar">
+      <a class="back" href="index.html" aria-label="홈">←</a>
+      <span class="dot" id="dot">🐱</span>
+      <h1 class="ttl" id="ttl">캡션<small id="sub">불러오는 중…</small></h1>
+    </div>
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="q" type="text" placeholder="검색…" autocomplete="off">
+    </div>
+  </div>
+  <div class="wrap" id="list"><div class="state">불러오는 중…</div></div>
+  <div class="hint">제목을 탭하면 펼쳐지고, 플랫폼 버튼을 탭하면 캡션이 복사돼요.</div>
+  <div class="toast" id="toast"></div>
+
+<script>
+// ── 채널 설정 ──────────────────────────────────────────────
+const CHANNELS = {
+  ginger: { name:"셰프진저",   sub:"Chef Ginger",  emoji:"🐱", csv:"ginger.csv" },
+  human:  { name:"휴먼탐구소", sub:"사람 탐구",     emoji:"🧠", csv:"human.csv" },
+  nubi:   { name:"누비툰",     sub:"게으른 고양이", emoji:"🐈", csv:"nubi.csv" },
+  dokgam: { name:"독감툰",     sub:"토끼와 감자",   emoji:"🐰", csv:"dokgam.csv" },
+};
+const PLATS = [
+  { key:"TikTok",              label:"TikTok",       cls:"t-tiktok" },
+  { key:"Instagram",           label:"Instagram",    cls:"t-instagram" },
+  { key:"YouTube Title",       label:"YouTube 제목", cls:"t-ytt" },
+  { key:"YouTube Description", label:"YouTube 설명", cls:"t-ytd" },
+];
+
+// ── 어떤 채널인지 (?ch=ginger) ──────────────────────────────
+const params = new URLSearchParams(location.search);
+const chKey = params.get("ch") || "ginger";
+const CH = CHANNELS[chKey] || CHANNELS.ginger;
+
+const listEl = document.getElementById("list");
+const toastEl = document.getElementById("toast");
+let toastTimer, ROWS = [];
+
+document.getElementById("ttl").childNodes[0].nodeValue = CH.name + " 캡션";
+document.getElementById("sub").textContent = CH.sub;
+document.getElementById("dot").textContent = CH.emoji;
+document.getElementById("q").placeholder = CH.name + " 검색…";
+document.title = CH.name + " 캡션";
+
+// ── 간단한 CSV 파서 (따옴표·줄바꿈 지원) ─────────────────────
+function parseCSV(text){
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // BOM 제거
+  const rows = []; let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (inQ){
+      if (c === '"'){ if (text[i+1] === '"'){ cur += '"'; i++; } else inQ = false; }
+      else cur += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(cur); cur = ""; }
+      else if (c === '\n'){ row.push(cur); rows.push(row); row = []; cur = ""; }
+      else if (c === '\r'){ /* skip */ }
+      else cur += c;
+    }
+  }
+  if (cur !== "" || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function preview(t){ return (t||"").split("\n")[0]; }
+
+function render(filter=""){
+  const f = filter.trim().toLowerCase();
+  listEl.innerHTML = "";
+  let shown = 0;
+  for (let i = ROWS.length - 1; i >= 0; i--){
+    const r = ROWS[i];
+    const title = r["요리/주제"] || "";
+    if (f && !title.toLowerCase().includes(f)) continue;
+    shown++;
+    const card = document.createElement("div");
+    card.className = "card" + (f ? " open" : "");
+    const note = r["비고"] || "";
+    let badge = "";
+    if (note){
+      const cls = /업로드/.test(note) ? "up" : (/NEW/i.test(note) ? "new" : "");
+      badge = `<span class="badge ${cls}">${escapeHtml(note)}</span>`;
+    }
+    let btns = "";
+    PLATS.forEach(p => {
+      const val = r[p.key] || "";
+      if (!val.trim()) return;
+      btns += `<button class="btn ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
+        <span class="b"></span>
+        <span class="in"><span class="pl">${p.label}</span><span class="pv">${escapeHtml(preview(val))}</span></span>
+        <span class="ac">복사</span></button>`;
+    });
+    card.innerHTML = `
+      <div class="head">
+        <span class="num">${String(i+1).padStart(2,'0')}</span>
+        <span class="names"><span class="nm">${escapeHtml(title)}</span></span>
+        ${badge}
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="body">${btns}</div>`;
+    card.querySelector(".head").addEventListener("click", () => card.classList.toggle("open"));
+    listEl.appendChild(card);
+  }
+  if (!shown) listEl.innerHTML = `<div class="state">검색 결과가 없어요.</div>`;
+}
+
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly","");
+      ta.style.position="fixed"; ta.style.top="-1000px"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand("copy"); document.body.removeChild(ta); return ok;
+    } catch(e2){ return false; }
+  }
+}
+function showToast(msg, err=false){
+  toastEl.textContent = msg; toastEl.className = "toast show" + (err?" err":"");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=> toastEl.className="toast", 1500);
+}
+listEl.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".btn"); if (!btn) return;
+  const text = ROWS[+btn.dataset.i][btn.dataset.k];
+  const ok = await copyText(text);
+  if (ok){
+    const ac = btn.querySelector(".ac"), prev = ac.textContent;
+    btn.classList.add("copied"); ac.textContent = "복사됨 ✓";
+    showToast("복사됐어요 ✓ — 업로드 화면에 붙여넣기");
+    setTimeout(()=>{ btn.classList.remove("copied"); ac.textContent = prev; }, 1400);
+  } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
+});
+document.getElementById("q").addEventListener("input", (e)=> render(e.target.value));
+
+// ── CSV 로드 ───────────────────────────────────────────────
+fetch(CH.csv + "?v=" + Date.now())
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+  .then(text => {
+    const grid = parseCSV(text).filter(row => row.some(c => (c||"").trim() !== ""));
+    const header = grid.shift();
+    ROWS = grid.map(cols => { const o = {}; header.forEach((h,idx)=> o[h.trim()] = cols[idx] || ""); return o; });
+    document.getElementById("sub").textContent = CH.sub + " · " + ROWS.length + "개";
+    render();
+  })
+  .catch(err => {
+    listEl.innerHTML = `<div class="state">CSV를 불러오지 못했어요 (${escapeHtml(String(err.message||err))}).<br>깃허브에 올린 뒤 열면 정상 작동해요.</div>`;
+    document.getElementById("sub").textContent = CH.sub;
+  });
+</script>
+</body>
+</html>
