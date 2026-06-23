@@ -46,16 +46,24 @@
   .card.open .chev{transform:rotate(180deg);}
   .body{display:none;padding:0 12px 12px;}
   .card.open .body{display:block;}
-  .btn{display:flex;align-items:stretch;width:100%;text-align:left;border:1px solid var(--line);
-    background:#FCFAF7;border-radius:12px;margin-top:8px;padding:0;overflow:hidden;cursor:pointer;transition:transform .08s;}
-  .btn:active{transform:scale(.985);}
-  .btn .b{width:5px;flex-shrink:0;}
-  .btn .in{flex:1;min-width:0;padding:11px 12px;}
-  .btn .pl{font-size:.7rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin-bottom:3px;}
-  .btn .pv{font-size:.82rem;color:#6B5E52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .btn .ac{display:flex;align-items:center;padding:0 13px;font-size:.74rem;font-weight:700;color:var(--accent-deep);
-    flex-shrink:0;border-left:1px dashed var(--line);background:#fff;}
-  .btn.copied .ac{color:var(--ok);} .btn.copied{background:#F1FAF4;border-color:#BFE6CE;}
+  .pf{border:1px solid var(--line);background:#FCFAF7;border-radius:12px;margin-top:8px;overflow:hidden;}
+  .pf-head{display:flex;align-items:stretch;width:100%;text-align:left;border:0;background:transparent;
+    padding:0;cursor:pointer;font:inherit;color:inherit;}
+  .pf .b{width:5px;flex-shrink:0;}
+  .pf-head .in{flex:1;min-width:0;padding:11px 12px;}
+  .pf-head .pl{font-size:.7rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin-bottom:3px;}
+  .pf-head .pv{font-size:.82rem;color:#6B5E52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pf-chev{display:flex;align-items:center;padding:0 13px;color:var(--muted);font-size:.9rem;
+    flex-shrink:0;transition:transform .2s;}
+  .pf.open .pf-chev{transform:rotate(180deg);}
+  .pf-body{display:none;padding:2px 12px 12px;}
+  .pf.open .pf-body{display:block;}
+  .full{white-space:pre-wrap;word-break:break-word;font-size:.86rem;color:var(--ink);line-height:1.55;
+    background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px 12px;margin:0 0 9px;}
+  .copy-btn{width:100%;border:0;background:var(--accent);color:#fff;font-weight:700;font-size:.86rem;
+    padding:12px;border-radius:9px;cursor:pointer;font-family:inherit;transition:background .15s,transform .08s;}
+  .copy-btn:active{transform:scale(.99);}
+  .copy-btn.copied{background:var(--ok);}
   .t-tiktok .b{background:var(--tiktok);} .t-tiktok .pl{color:var(--tiktok);}
   .t-instagram .b{background:var(--instagram);} .t-instagram .pl{color:var(--instagram);}
   .t-ytt .b{background:var(--ytt);} .t-ytt .pl{color:var(--ytt);}
@@ -87,7 +95,7 @@
     </div>
   </div>
   <div class="wrap" id="list"><div class="state">불러오는 중…</div></div>
-  <div class="hint">제목을 탭하면 펼쳐지고, 플랫폼 버튼을 탭하면 캡션이 복사돼요.</div>
+  <div class="hint">제목을 탭하면 펼쳐지고, 플랫폼을 탭하면 전문이 보여요. 확인 후 복사하기를 누르세요.</div>
   <div class="toast" id="toast"></div>
 
 <script>
@@ -176,10 +184,17 @@ function buildCard(i){
   PLATS.forEach(p => {
     const val = r[p.key] || "";
     if (!val.trim()) return;
-    btns += `<button class="btn ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
-      <span class="b"></span>
-      <span class="in"><span class="pl">${p.label}</span><span class="pv">${escapeHtml(preview(val))}</span></span>
-      <span class="ac">복사</span></button>`;
+    btns += `<div class="pf ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
+      <button class="pf-head">
+        <span class="b"></span>
+        <span class="in"><span class="pl">${p.label}</span><span class="pv">${escapeHtml(preview(val))}</span></span>
+        <span class="pf-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></span>
+      </button>
+      <div class="pf-body">
+        <div class="full">${escapeHtml(val)}</div>
+        <button class="copy-btn">복사하기</button>
+      </div>
+    </div>`;
   });
   card.innerHTML = `
     <div class="head">
@@ -260,15 +275,23 @@ function showToast(msg, err=false){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=> toastEl.className="toast", 1500);
 }
 listEl.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".btn"); if (!btn) return;
-  const text = ROWS[+btn.dataset.i][btn.dataset.k];
-  const ok = await copyText(text);
-  if (ok){
-    const ac = btn.querySelector(".ac"), prev = ac.textContent;
-    btn.classList.add("copied"); ac.textContent = "복사됨 ✓";
-    showToast("복사됐어요 ✓ — 업로드 화면에 붙여넣기");
-    setTimeout(()=>{ btn.classList.remove("copied"); ac.textContent = prev; }, 1400);
-  } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
+  // ① 복사하기 버튼
+  const copyBtn = e.target.closest(".copy-btn");
+  if (copyBtn){
+    const pf = copyBtn.closest(".pf");
+    const text = ROWS[+pf.dataset.i][pf.dataset.k];
+    const ok = await copyText(text);
+    if (ok){
+      copyBtn.classList.add("copied");
+      const prev = copyBtn.textContent; copyBtn.textContent = "복사됨 ✓";
+      showToast("복사됐어요 ✓ — 업로드 화면에 붙여넣기");
+      setTimeout(()=>{ copyBtn.classList.remove("copied"); copyBtn.textContent = prev; }, 1400);
+    } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
+    return;
+  }
+  // ② 플랫폼 헤더 탭 → 전문 펼치기/접기
+  const head = e.target.closest(".pf-head");
+  if (head){ head.closest(".pf").classList.toggle("open"); }
 });
 
 // 검색: 타이핑 멈춘 뒤 0.15초 후에만 다시 그림 (디바운스)
