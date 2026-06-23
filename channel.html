@@ -61,6 +61,7 @@
   .t-ytt .b{background:var(--ytt);} .t-ytt .pl{color:var(--ytt);}
   .t-ytd .b{background:var(--ytd);} .t-ytd .pl{color:var(--ytd);}
   .state{text-align:center;color:var(--muted);padding:40px 20px;font-size:.9rem;}
+  .loadmore{text-align:center;color:var(--muted);font-size:.78rem;padding:10px 20px 20px;}
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
     padding:11px 20px;border-radius:999px;font-size:.86rem;font-weight:600;opacity:0;pointer-events:none;
     transition:opacity .2s,transform .2s;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.2);}
@@ -138,44 +139,85 @@ function parseCSV(text){
 function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function preview(t){ return (t||"").split("\n")[0]; }
 
-function render(filter=""){
-  const f = filter.trim().toLowerCase();
-  listEl.innerHTML = "";
-  let shown = 0;
-  for (let i = ROWS.length - 1; i >= 0; i--){
-    const r = ROWS[i];
-    const title = r["요리/주제"] || "";
-    if (f && !title.toLowerCase().includes(f)) continue;
-    shown++;
-    const card = document.createElement("div");
-    card.className = "card" + (f ? " open" : "");
-    const note = r["비고"] || "";
-    let badge = "";
-    if (note){
-      const cls = /업로드/.test(note) ? "up" : (/NEW/i.test(note) ? "new" : "");
-      badge = `<span class="badge ${cls}">${escapeHtml(note)}</span>`;
-    }
-    let btns = "";
-    PLATS.forEach(p => {
-      const val = r[p.key] || "";
-      if (!val.trim()) return;
-      btns += `<button class="btn ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
-        <span class="b"></span>
-        <span class="in"><span class="pl">${p.label}</span><span class="pv">${escapeHtml(preview(val))}</span></span>
-        <span class="ac">복사</span></button>`;
-    });
-    card.innerHTML = `
-      <div class="head">
-        <span class="num">${String(i+1).padStart(2,'0')}</span>
-        <span class="names"><span class="nm">${escapeHtml(title)}</span></span>
-        ${badge}
-        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
-      <div class="body">${btns}</div>`;
-    card.querySelector(".head").addEventListener("click", () => card.classList.toggle("open"));
-    listEl.appendChild(card);
+// ── 렌더링 (15개씩 무한 스크롤 + 검색 디바운스) ──────────────
+const CHUNK = 15;          // 처음/스크롤마다 그릴 개수
+let view = [];             // 현재 필터에 맞는 행 인덱스 (최신순)
+let rendered = 0;          // 지금까지 그린 개수
+let curFilter = "";        // 현재 검색어
+
+// 바닥 감지용 표식 (화면에 들어오면 다음 묶음 로드)
+const sentinel = document.createElement("div");
+sentinel.className = "loadmore";
+sentinel.style.display = "none";
+listEl.after(sentinel);
+const io = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && rendered < view.length) renderMore();
+}, { rootMargin: "300px" });
+io.observe(sentinel);
+
+function buildCard(i){
+  const r = ROWS[i];
+  const title = r["요리/주제"] || "";
+  const card = document.createElement("div");
+  card.className = "card" + (curFilter ? " open" : "");
+  const note = r["비고"] || "";
+  let badge = "";
+  if (note){
+    const cls = /업로드/.test(note) ? "up" : (/NEW/i.test(note) ? "new" : "");
+    badge = `<span class="badge ${cls}">${escapeHtml(note)}</span>`;
   }
-  if (!shown) listEl.innerHTML = `<div class="state">검색 결과가 없어요.</div>`;
+  let btns = "";
+  PLATS.forEach(p => {
+    const val = r[p.key] || "";
+    if (!val.trim()) return;
+    btns += `<button class="btn ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
+      <span class="b"></span>
+      <span class="in"><span class="pl">${p.label}</span><span class="pv">${escapeHtml(preview(val))}</span></span>
+      <span class="ac">복사</span></button>`;
+  });
+  card.innerHTML = `
+    <div class="head">
+      <span class="num">${String(i+1).padStart(2,'0')}</span>
+      <span class="names"><span class="nm">${escapeHtml(title)}</span></span>
+      ${badge}
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="body">${btns}</div>`;
+  card.querySelector(".head").addEventListener("click", () => card.classList.toggle("open"));
+  return card;
+}
+
+function renderMore(){
+  const frag = document.createDocumentFragment();
+  const end = Math.min(rendered + CHUNK, view.length);
+  for (let k = rendered; k < end; k++) frag.appendChild(buildCard(view[k]));
+  listEl.appendChild(frag);
+  rendered = end;
+  const remain = view.length - rendered;
+  if (remain > 0){
+    sentinel.style.display = "block";
+    sentinel.textContent = "아래로 내리면 더 보기 (" + remain + "개 남음)";
+  } else {
+    sentinel.style.display = "none";
+  }
+}
+
+function applyFilter(filter=""){
+  curFilter = (filter || "").trim().toLowerCase();
+  view = [];
+  for (let i = ROWS.length - 1; i >= 0; i--){           // 최신순 (아래일수록 옛날)
+    const title = (ROWS[i]["요리/주제"] || "").toLowerCase();
+    if (!curFilter || title.includes(curFilter)) view.push(i);
+  }
+  listEl.innerHTML = "";
+  rendered = 0;
+  if (!view.length){
+    sentinel.style.display = "none";
+    listEl.innerHTML = `<div class="state">${curFilter ? "검색 결과가 없어요." : "아직 캡션이 없어요."}</div>`;
+    return;
+  }
+  renderMore();
+  window.scrollTo({ top: 0 });
 }
 
 async function copyText(text){
@@ -205,7 +247,14 @@ listEl.addEventListener("click", async (e) => {
     setTimeout(()=>{ btn.classList.remove("copied"); ac.textContent = prev; }, 1400);
   } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
 });
-document.getElementById("q").addEventListener("input", (e)=> render(e.target.value));
+
+// 검색: 타이핑 멈춘 뒤 0.15초 후에만 다시 그림 (디바운스)
+let debTimer;
+document.getElementById("q").addEventListener("input", (e) => {
+  const v = e.target.value;
+  clearTimeout(debTimer);
+  debTimer = setTimeout(() => applyFilter(v), 150);
+});
 
 // ── CSV 로드 ───────────────────────────────────────────────
 fetch(CH.csv + "?v=" + Date.now())
@@ -215,9 +264,10 @@ fetch(CH.csv + "?v=" + Date.now())
     const header = grid.shift();
     ROWS = grid.map(cols => { const o = {}; header.forEach((h,idx)=> o[h.trim()] = cols[idx] || ""); return o; });
     document.getElementById("sub").textContent = CH.sub + " · " + ROWS.length + "개";
-    render();
+    applyFilter("");
   })
   .catch(err => {
+    sentinel.style.display = "none";
     listEl.innerHTML = `<div class="state">CSV를 불러오지 못했어요 (${escapeHtml(String(err.message||err))}).<br>깃허브에 올린 뒤 열면 정상 작동해요.</div>`;
     document.getElementById("sub").textContent = CH.sub;
   });
