@@ -2,8 +2,10 @@ name: sync-captions
 
 on:
   schedule:
-    - cron: '*/30 * * * *'     # 30분마다 자동 실행 (UTC 기준)
-  workflow_dispatch:            # 깃허브에서 "지금 실행" 버튼
+    - cron: '0 * * * *'      # 백업용 (밀려도 언젠간 돔)
+  workflow_dispatch:          # 수동 버튼
+  repository_dispatch:        # ← 외부에서 깨우기 (추가)
+    types: [sheet-updated]
 
 permissions:
   contents: write
