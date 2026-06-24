@@ -46,22 +46,17 @@
   .card.open .chev{transform:rotate(180deg);}
   .body{display:none;padding:0 12px 12px;}
   .card.open .body{display:block;}
-  .pf{border:1px solid var(--line);background:#FCFAF7;border-radius:12px;margin-top:8px;overflow:hidden;}
-  .pf-head{display:flex;align-items:stretch;width:100%;text-align:left;border:0;background:transparent;
-    padding:0;cursor:pointer;font:inherit;color:inherit;}
-  .pf-head .in{flex:1;min-width:0;padding:13px 14px;display:flex;align-items:center;}
-  .pf-head .pl{font-size:.78rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}
-  .pf-chev{display:flex;align-items:center;padding:0 13px;color:var(--muted);font-size:.9rem;
-    flex-shrink:0;transition:transform .2s;}
-  .pf.open .pf-chev{transform:rotate(180deg);}
-  .pf-body{display:none;padding:2px 12px 12px;}
-  .pf.open .pf-body{display:block;}
-  .full{white-space:pre-wrap;word-break:break-word;font-size:.86rem;color:var(--ink);line-height:1.55;
-    background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px 12px;margin:0 0 9px;}
-  .copy-btn{width:100%;border:0;background:var(--accent);color:#fff;font-weight:700;font-size:.86rem;
-    padding:12px;border-radius:9px;cursor:pointer;font-family:inherit;transition:background .15s,transform .08s;}
-  .copy-btn:active{transform:scale(.99);}
-  .copy-btn.copied{background:var(--ok);}
+  .pf{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;border:1px solid var(--line);
+    background:#FCFAF7;border-radius:12px;margin-top:8px;padding:12px 14px;cursor:pointer;
+    font:inherit;color:inherit;transition:background .15s,border-color .15s,transform .08s;}
+  .pf:active{transform:scale(.995);}
+  .pf.copied{background:#EAF7F0;border-color:var(--ok);}
+  .pf-top{display:flex;align-items:center;gap:8px;}
+  .pf .pl{font-size:.78rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}
+  .tap{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:600;flex-shrink:0;}
+  .pf.copied .tap{color:var(--ok);}
+  .pv{font-size:.82rem;color:var(--muted);line-height:1.5;white-space:pre-wrap;word-break:break-word;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
   .t-tiktok .pl{color:var(--tiktok);}
   .t-instagram .pl{color:var(--instagram);}
   .t-ytt .pl{color:var(--ytt);}
@@ -93,7 +88,7 @@
     </div>
   </div>
   <div class="wrap" id="list"><div class="state">불러오는 중…</div></div>
-  <div class="hint">제목을 탭하면 펼쳐지고, 플랫폼을 탭하면 전문이 보여요. 확인 후 복사하기를 누르세요.</div>
+  <div class="hint">제목을 탭하면 펼쳐지고, 플랫폼을 탭하면 바로 복사돼요.</div>
   <div class="toast" id="toast"></div>
 
 <script>
@@ -182,16 +177,10 @@ function buildCard(i){
   PLATS.forEach(p => {
     const val = r[p.key] || "";
     if (!val.trim()) return;
-    btns += `<div class="pf ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
-      <button class="pf-head">
-        <span class="in"><span class="pl">${p.label}</span></span>
-        <span class="pf-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></span>
-      </button>
-      <div class="pf-body">
-        <div class="full">${escapeHtml(val)}</div>
-        <button class="copy-btn">복사하기</button>
-      </div>
-    </div>`;
+    btns += `<button class="pf ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
+      <span class="pf-top"><span class="pl">${p.label}</span><span class="tap">탭하면 복사 📋</span></span>
+      <span class="pv">${escapeHtml(val)}</span>
+    </button>`;
   });
   card.innerHTML = `
     <div class="head">
@@ -272,23 +261,19 @@ function showToast(msg, err=false){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=> toastEl.className="toast", 1500);
 }
 listEl.addEventListener("click", async (e) => {
-  // ① 복사하기 버튼
-  const copyBtn = e.target.closest(".copy-btn");
-  if (copyBtn){
-    const pf = copyBtn.closest(".pf");
-    const text = ROWS[+pf.dataset.i][pf.dataset.k];
-    const ok = await copyText(text);
-    if (ok){
-      copyBtn.classList.add("copied");
-      const prev = copyBtn.textContent; copyBtn.textContent = "복사됨 ✓";
-      showToast("복사됐어요 ✓ — 업로드 화면에 붙여넣기");
-      setTimeout(()=>{ copyBtn.classList.remove("copied"); copyBtn.textContent = prev; }, 1400);
-    } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
-    return;
-  }
-  // ② 플랫폼 헤더 탭 → 전문 펼치기/접기
-  const head = e.target.closest(".pf-head");
-  if (head){ head.closest(".pf").classList.toggle("open"); }
+  // 플랫폼 탭 → 바로 복사
+  const pf = e.target.closest(".pf");
+  if (!pf) return;
+  const text = ROWS[+pf.dataset.i][pf.dataset.k];
+  const ok = await copyText(text);
+  if (ok){
+    pf.classList.add("copied");
+    const tap = pf.querySelector(".tap");
+    const prev = tap ? tap.textContent : "";
+    if (tap) tap.textContent = "복사됨 ✓";
+    showToast("복사됐어요 ✓ — 업로드 화면에 붙여넣기");
+    setTimeout(()=>{ pf.classList.remove("copied"); if (tap) tap.textContent = prev; }, 1400);
+  } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
 });
 
 // 검색: 타이핑 멈춘 뒤 0.15초 후에만 다시 그림 (디바운스)
