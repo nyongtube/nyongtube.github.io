@@ -42,8 +42,8 @@
   .names{flex:1;min-width:0;}
   .nm{font-weight:600;font-size:.97rem;word-break:break-word;}
   .badge{font-size:.66rem;font-weight:600;color:#fff;background:var(--muted);padding:3px 7px;border-radius:999px;white-space:nowrap;}
-  .badge.up{background:var(--ok);} .badge.new{background:var(--accent);}
-  .badge.gen{background:#3E82C4;} .badge.edit{background:#D8952E;}
+  .badge.up{background:var(--ok);} .badge.book{background:#3E82C4;} .badge.edit{background:#D06A9C;}
+  .badge.gen{background:#D8952E;} .badge.hold{background:#5F564E;}
   .chev{transition:transform .2s;opacity:.4;flex-shrink:0;}
   .card.open .chev{transform:rotate(180deg);}
   .body{display:none;padding:0 12px 12px;}
@@ -121,11 +121,12 @@ const TITLE_RE  = /^(주제|요리\/주제|편|제목)$/; // 이 칸 = 카드 �
 
 // 상태값 → 뱃지 색
 function statusClass(s){
-  if (/업로드/.test(s)) return "up";    // 업로드 완료 → 초록
-  if (/편집/.test(s))   return "edit";  // 편집중 → 앰버
-  if (/생성/.test(s))   return "gen";   // 영상 생성 완료 → 파랑
-  if (/NEW/i.test(s))   return "new";
-  return "";                             // 제작전 등 → 회색
+  if (/업로드/.test(s)) return "up";     // 업로드 → 초록
+  if (/예약/.test(s))   return "book";   // 예약 → 파랑
+  if (/편집/.test(s))   return "edit";   // 편집 → 분홍
+  if (/생성/.test(s))   return "gen";    // 생성 → 앰버
+  if (/보류/.test(s))   return "hold";   // 보류 → 진회색
+  return "";                              // 그 외 → 연회색
 }
 
 const params = new URLSearchParams(location.search);
