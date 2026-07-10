@@ -23,8 +23,9 @@
   .top{position:sticky;top:0;z-index:10;
     background:linear-gradient(180deg,var(--paper) 72%,rgba(251,244,236,0));padding:14px 16px 10px;}
   .bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-  .back{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
-    display:grid;place-items:center;text-decoration:none;color:var(--ink);font-size:18px;flex-shrink:0;}
+  .back{width:30px;height:34px;margin-left:-4px;display:grid;place-items:center;text-decoration:none;
+    color:var(--muted);flex-shrink:0;transition:color .15s;}
+  .back:active{color:var(--ink);}
   .dot{width:30px;height:30px;border-radius:9px;background:#FBE9E1;color:var(--accent);
     display:grid;place-items:center;font-family:"Fredoka",sans-serif;font-weight:700;font-size:1rem;flex-shrink:0;}
   .ttl{font-family:"Fredoka",sans-serif;font-weight:700;font-size:1.12rem;margin:0;letter-spacing:-.01em;flex:1;min-width:0;}
@@ -79,7 +80,7 @@
 <body>
   <div class="top">
     <div class="bar">
-      <a class="back" href="index.html" aria-label="홈">←</a>
+      <a class="back" href="index.html" aria-label="홈"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
       <span class="dot" id="dot">🐱</span>
       <h1 class="ttl" id="ttl">캡션<small id="sub">불러오는 중…</small></h1>
     </div>
