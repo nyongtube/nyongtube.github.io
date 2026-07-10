@@ -95,11 +95,13 @@
 // ── 채널 설정 ──────────────────────────────────────────────
 const CHANNELS = {
   ginger: { name:"셰프진저",   sub:"Chef Ginger",  emoji:"🐱", csv:"ginger.csv" },
-  human:  { name:"휴먼탐구소", sub:"사람 탐구",     emoji:"🧠", csv:"human.csv" },
+  human:  { name:"셰프진저 프롬프트", sub:"클립별 영상 프롬프트", emoji:"🎬", csv:"human.csv",
+            plats:[ { key:"프롬프트", label:"프롬프트 복사", cls:"t-ytd" } ] },
   nubi:   { name:"누비툰",     sub:"게으른 고양이", emoji:"🐈", csv:"nubi.csv" },
   dokgam: { name:"독감툰",     sub:"토끼와 감자",   emoji:"🐰", csv:"dokgam.csv" },
 };
-const PLATS = [
+// 기본 플랫폼(캡션 채널용). 채널에 plats가 있으면 그걸 대신 사용(프롬프트 채널 등).
+const DEFAULT_PLATS = [
   { key:"TikTok",              label:"TikTok",       cls:"t-tiktok" },
   { key:"Instagram",           label:"Instagram",    cls:"t-instagram" },
   { key:"YouTube Title",       label:"YouTube 제목", cls:"t-ytt" },
@@ -110,6 +112,7 @@ const PLATS = [
 const params = new URLSearchParams(location.search);
 const chKey = params.get("ch") || "ginger";
 const CH = CHANNELS[chKey] || CHANNELS.ginger;
+const PLATS = CH.plats || DEFAULT_PLATS;
 
 const listEl = document.getElementById("list");
 const toastEl = document.getElementById("toast");
@@ -271,7 +274,7 @@ listEl.addEventListener("click", async (e) => {
     const tap = pf.querySelector(".tap");
     const prev = tap ? tap.textContent : "";
     if (tap) tap.textContent = "복사됨 ✓";
-    showToast("복사됐어요 ✓ — 업로드 화면에 붙여넣기");
+    showToast("복사됐어요 ✓ — 붙여넣기만 하면 끝");
     setTimeout(()=>{ pf.classList.remove("copied"); if (tap) tap.textContent = prev; }, 1400);
   } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
 });
