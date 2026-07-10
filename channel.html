@@ -104,7 +104,7 @@
 const CHANNELS = {
   ginger: { name:"셰프진저", sub:"Chef Ginger", emoji:"🐱", csv:"ginger.csv", newest:true,  kind:"캡션" },
   human:  { name:"셰프진저 프롬프트", sub:"클립별 영상 프롬프트", emoji:"🎬", csv:"human.csv", newest:false, unit:"클립", kind:"프롬프트",
-            firstLineLabel:true, hint:"편을 탭하면 펼쳐지고, 클립을 탭하면 프롬프트가 복사돼요." },
+            hint:"제목을 탭하면 펼쳐지고, 각 칸을 탭하면 내용이 복사돼요." },
   nubi:   { name:"누비툰", sub:"게으른 고양이", emoji:"🐈", csv:"nubi.csv", newest:true, kind:"캡션" },
   dokgam: { name:"독감툰", sub:"토끼와 감자", emoji:"🐰", csv:"dokgam.csv", newest:true, kind:"캡션" },
 };
@@ -164,16 +164,6 @@ function parseCSV(text){
 }
 function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// 일반 칸: 첫 줄 = 라벨, 아래 = 복사 내용. (아래가 비면 fallback 라벨 + 전체 복사)
-function splitLabeled(raw, fallbackLabel){
-  const nl = raw.indexOf("\n");
-  if (nl >= 0){
-    const rest = raw.slice(nl+1).replace(/^\n+/, "");
-    if (rest.trim() !== "") return { label: raw.slice(0,nl).trim() || fallbackLabel, text: rest.trim() };
-  }
-  return { label: fallbackLabel, text: raw.trim() };
-}
-
 // ── 데이터 → 그룹(카드) 구성 ───────────────────────────────
 function buildGroups(){
   GROUPS = []; CLIPTEXTS = []; const idx = {};
@@ -192,8 +182,7 @@ function buildGroups(){
       if (!raw.trim()) return;
       let label, text, cls;
       if (PLATMAP[col]){ label = PLATMAP[col].label; text = raw.trim(); cls = PLATMAP[col].cls; }
-      else if (CH.firstLineLabel){ const s = splitLabeled(raw, col); label = s.label; text = s.text; cls = "t-ytd"; }
-      else { label = col; text = raw.trim(); cls = "t-ytd"; }   // 캡션형: 칸 전체 복사, 헤더가 라벨
+      else { label = col; text = raw.trim(); cls = "t-ytd"; }   // 헤더가 버튼 이름, 칸 전체가 복사 내용
       const ct = CLIPTEXTS.length; CLIPTEXTS.push(text);
       grp.items.push({ label, ct, cls });
     });
