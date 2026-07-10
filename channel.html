@@ -53,7 +53,6 @@
   .pf.copied{background:#EAF7F0;border-color:var(--ok);}
   .pf-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .pf .pl{font-size:.82rem;font-weight:700;letter-spacing:.01em;}
-  .ntag{font-size:.64rem;font-weight:600;color:#fff;background:var(--muted);padding:2px 7px;border-radius:999px;white-space:nowrap;}
   .tap{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:600;flex-shrink:0;}
   .pf.copied .tap{color:var(--ok);}
   .pv{font-size:.82rem;color:var(--muted);line-height:1.5;white-space:pre-wrap;word-break:break-word;
@@ -89,48 +88,52 @@
     </div>
   </div>
   <div class="wrap" id="list"><div class="state">불러오는 중…</div></div>
-  <div class="hint" id="hint">제목을 탭하면 펼쳐지고, 플랫폼을 탭하면 바로 복사돼요.</div>
+  <div class="hint" id="hint">제목을 탭하면 펼쳐지고, 항목을 탭하면 바로 복사돼요.</div>
   <div class="toast" id="toast"></div>
 
 <script>
 // ── 채널 설정 ──────────────────────────────────────────────
+// 모든 채널이 동일한 구조로 동작:
+//   · A열 = 카드 제목(캡션의 요리/주제 · 프롬프트의 편)
+//   · "비고"/"상태" 칸 = 상태 뱃지 (복사 버튼 아님)
+//   · 그 외 모든 칸 = 복사 버튼
+//       - 알려진 플랫폼 칸(TikTok 등)은 칸 전체가 내용, 버튼 이름 = 플랫폼
+//       - 그 밖의 칸은 "첫 줄 = 버튼 이름, 아래 = 복사 내용" (프롬프트용)
+//   · 같은 제목을 여러 행에 쓰면 한 카드로 합쳐짐 (세로 확장)
 const CHANNELS = {
-  ginger: { name:"셰프진저",   sub:"Chef Ginger",  emoji:"🐱", csv:"ginger.csv" },
-  // 프롬프트 채널: 편(그룹)별 아코디언 → 내부 클립별 복사 버튼.
-  // human 탭 컬럼 = 편, 클립, 프롬프트, 비고
-  human:  { name:"셰프진저 프롬프트", sub:"클립별 영상 프롬프트", emoji:"🎬", csv:"human.csv",
-            mode:"prompts", groupKey:"편", clipKey:"클립", textKey:"프롬프트" },
-  nubi:   { name:"누비툰",     sub:"게으른 고양이", emoji:"🐈", csv:"nubi.csv" },
-  dokgam: { name:"독감툰",     sub:"토끼와 감자",   emoji:"🐰", csv:"dokgam.csv" },
+  ginger: { name:"셰프진저", sub:"Chef Ginger", emoji:"🐱", csv:"ginger.csv", newest:true,  kind:"캡션" },
+  human:  { name:"셰프진저 프롬프트", sub:"클립별 영상 프롬프트", emoji:"🎬", csv:"human.csv", newest:false, unit:"클립", kind:"프롬프트",
+            hint:"편을 탭하면 펼쳐지고, 클립을 탭하면 프롬프트가 복사돼요." },
+  nubi:   { name:"누비툰", sub:"게으른 고양이", emoji:"🐈", csv:"nubi.csv", newest:true, kind:"캡션" },
+  dokgam: { name:"독감툰", sub:"토끼와 감자", emoji:"🐰", csv:"dokgam.csv", newest:true, kind:"캡션" },
 };
-const DEFAULT_PLATS = [
-  { key:"TikTok",              label:"TikTok",       cls:"t-tiktok" },
-  { key:"Instagram",           label:"Instagram",    cls:"t-instagram" },
-  { key:"YouTube Title",       label:"YouTube 제목", cls:"t-ytt" },
-  { key:"YouTube Description", label:"YouTube 설명", cls:"t-ytd" },
-];
+// 알려진 플랫폼 칸 → 버튼 이름/색. (칸 전체가 복사 내용)
+const PLATMAP = {
+  "TikTok":              { label:"TikTok",       cls:"t-tiktok" },
+  "Instagram":           { label:"Instagram",    cls:"t-instagram" },
+  "YouTube Title":       { label:"YouTube 제목", cls:"t-ytt" },
+  "YouTube Description": { label:"YouTube 설명", cls:"t-ytd" },
+};
+const STATUS_RE = /^(비고|상태)$/;
 
-// ── 어떤 채널인지 (?ch=ginger) ──────────────────────────────
 const params = new URLSearchParams(location.search);
 const chKey = params.get("ch") || "ginger";
 const CH = CHANNELS[chKey] || CHANNELS.ginger;
-const PLATS = CH.plats || DEFAULT_PLATS;
-const MODE = CH.mode || "caption";   // "caption" | "prompts"
 
 const listEl = document.getElementById("list");
 const toastEl = document.getElementById("toast");
-let toastTimer, ROWS = [], GROUPS = [];
+let toastTimer, ROWS = [], HEADERS = [], GROUPS = [], CLIPTEXTS = [], HAS_STATUS = false;
 
-document.getElementById("ttl").childNodes[0].nodeValue = (MODE==="prompts" ? "프롬프트" : "캡션");
+document.getElementById("ttl").childNodes[0].nodeValue = CH.kind || "캡션";
 document.getElementById("sub").textContent = CH.sub;
 document.getElementById("dot").textContent = CH.emoji;
 document.getElementById("q").placeholder = CH.name + " 검색…";
-document.title = CH.name + (MODE==="prompts" ? " 프롬프트" : " 캡션");
-if (MODE==="prompts") document.getElementById("hint").textContent = "편을 탭하면 펼쳐지고, 클립을 탭하면 프롬프트가 복사돼요.";
+document.title = CH.name + " " + (CH.kind || "캡션");
+if (CH.hint) document.getElementById("hint").textContent = CH.hint;
 
-// ── 간단한 CSV 파서 (따옴표·줄바꿈 지원) ─────────────────────
+// ── CSV 파서 (따옴표·줄바꿈 지원) ──────────────────────────
 function parseCSV(text){
-  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // BOM 제거
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const rows = []; let row = [], cur = "", inQ = false;
   for (let i = 0; i < text.length; i++){
     const c = text[i];
@@ -148,29 +151,48 @@ function parseCSV(text){
   if (cur !== "" || row.length){ row.push(cur); rows.push(row); }
   return rows;
 }
-
 function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// ── 프롬프트 모드: 편(그룹)으로 묶기 (CSV 순서 유지) ─────────
+// 일반 칸: 첫 줄 = 라벨, 아래 = 복사 내용. (아래가 비면 fallback 라벨 + 전체 복사)
+function splitLabeled(raw, fallbackLabel){
+  const nl = raw.indexOf("\n");
+  if (nl >= 0){
+    const rest = raw.slice(nl+1).replace(/^\n+/, "");
+    if (rest.trim() !== "") return { label: raw.slice(0,nl).trim() || fallbackLabel, text: rest.trim() };
+  }
+  return { label: fallbackLabel, text: raw.trim() };
+}
+
+// ── 데이터 → 그룹(카드) 구성 ───────────────────────────────
 function buildGroups(){
-  GROUPS = []; const idx = {};
-  ROWS.forEach((r,i) => {
-    const ep = (r[CH.groupKey]||"").trim() || "기타";
-    if (!(ep in idx)){ idx[ep] = GROUPS.length; GROUPS.push({ ep, items: [] }); }
-    GROUPS[idx[ep]].items.push(i);
+  GROUPS = []; CLIPTEXTS = []; const idx = {};
+  const titleCol = HEADERS[0];
+  const statusCol = HEADERS.find(h => STATUS_RE.test(h)) || "";
+  HAS_STATUS = !!statusCol;
+  const itemCols = HEADERS.slice(1).filter(h => h && h !== statusCol);
+  ROWS.forEach(r => {
+    const t = (r[titleCol]||"").trim() || "(제목없음)";
+    if (!(t in idx)){ idx[t] = GROUPS.length; GROUPS.push({ title: t, status: "", items: [] }); }
+    const grp = GROUPS[idx[t]];
+    if (statusCol && (r[statusCol]||"").trim()) grp.status = r[statusCol].trim();
+    itemCols.forEach(col => {
+      const raw = r[col] || "";
+      if (!raw.trim()) return;
+      let label, text, cls;
+      if (PLATMAP[col]){ label = PLATMAP[col].label; text = raw.trim(); cls = PLATMAP[col].cls; }
+      else { const s = splitLabeled(raw, col); label = s.label; text = s.text; cls = "t-ytd"; }
+      const ct = CLIPTEXTS.length; CLIPTEXTS.push(text);
+      grp.items.push({ label, ct, cls });
+    });
   });
 }
 
-// ── 렌더링 (15개씩 무한 스크롤 + 검색 디바운스) ──────────────
+// ── 렌더링 ────────────────────────────────────────────────
 const CHUNK = 15;
-let view = [];
-let rendered = 0;
-let curFilter = "";
-let loading = false;
+let view = [], rendered = 0, curFilter = "", loading = false;
 
 const sentinel = document.createElement("div");
-sentinel.className = "loadmore";
-sentinel.style.display = "none";
+sentinel.className = "loadmore"; sentinel.style.display = "none";
 listEl.after(sentinel);
 const io = new IntersectionObserver((entries) => {
   if (entries[0].isIntersecting && rendered < view.length) loadMore();
@@ -179,76 +201,44 @@ io.observe(sentinel);
 
 const CHEV = `<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>`;
 
-// 캡션 카드 (기존 방식)
-function buildCaptionCard(i){
-  const r = ROWS[i];
-  const title = r["요리/주제"] || "";
-  const card = document.createElement("div");
-  card.className = "card" + (curFilter ? " open" : "");
-  const note = r["비고"] || "";
-  let badge = "";
-  if (note){
-    const cls = /업로드/.test(note) ? "up" : (/NEW/i.test(note) ? "new" : "");
-    badge = `<span class="badge ${cls}">${escapeHtml(note)}</span>`;
-  }
-  let btns = "";
-  PLATS.forEach(p => {
-    const val = r[p.key] || "";
-    if (!val.trim()) return;
-    btns += `<button class="pf ${p.cls}" data-i="${i}" data-k="${escapeHtml(p.key)}">
-      <span class="pf-top"><span class="pl">${p.label}</span><span class="tap">탭하면 복사 📋</span></span>
-      <span class="pv">${escapeHtml(val)}</span>
-    </button>`;
-  });
-  card.innerHTML = `
-    <div class="head">
-      <span class="num">${String(i+1).padStart(2,'0')}</span>
-      <span class="names"><span class="nm">${escapeHtml(title)}</span></span>
-      ${badge}${CHEV}
-    </div>
-    <div class="body">${btns}</div>`;
-  card.querySelector(".head").addEventListener("click", () => card.classList.toggle("open"));
-  return card;
-}
-
-// 프롬프트 카드 (편 아코디언 → 클립별 복사 버튼)
-function buildGroupCard(g){
+function buildCard(g){
   const grp = GROUPS[g];
   const card = document.createElement("div");
   card.className = "card" + (curFilter ? " open" : "");
   let btns = "";
-  grp.items.forEach(i => {
-    const clip = ROWS[i][CH.clipKey] || "";
-    const text = ROWS[i][CH.textKey] || "";
-    const note = ROWS[i]["비고"] || "";
-    if (!text.trim()) return;
-    const ntag = note ? `<span class="ntag">${escapeHtml(note)}</span>` : "";
-    btns += `<button class="pf t-ytd" data-i="${i}" data-k="${escapeHtml(CH.textKey)}">
-      <span class="pf-top"><span class="pl">${escapeHtml(clip)}</span>${ntag}<span class="tap">탭하면 복사 📋</span></span>
+  grp.items.forEach(it => {
+    const text = CLIPTEXTS[it.ct] || "";
+    btns += `<button class="pf ${it.cls}" data-ct="${it.ct}">
+      <span class="pf-top"><span class="pl">${escapeHtml(it.label)}</span><span class="tap">탭하면 복사 📋</span></span>
       <span class="pv">${escapeHtml(text)}</span>
     </button>`;
   });
-  const badge = `<span class="badge">${grp.items.length}클립</span>`;
+  let badge = "";
+  if (HAS_STATUS){
+    if (grp.status){
+      const cls = /업로드/.test(grp.status) ? "up" : (/NEW/i.test(grp.status) ? "new" : "");
+      badge = `<span class="badge ${cls}">${escapeHtml(grp.status)}</span>`;
+    }
+  } else {
+    badge = `<span class="badge">${grp.items.length}${CH.unit || "개"}</span>`;
+  }
   card.innerHTML = `
     <div class="head">
       <span class="num">${String(g+1).padStart(2,'0')}</span>
-      <span class="names"><span class="nm">${escapeHtml(grp.ep)}</span></span>
+      <span class="names"><span class="nm">${escapeHtml(grp.title)}</span></span>
       ${badge}${CHEV}
     </div>
     <div class="body">${btns}</div>`;
   card.querySelector(".head").addEventListener("click", () => card.classList.toggle("open"));
   return card;
 }
-
-function buildCard(idx){ return MODE==="prompts" ? buildGroupCard(idx) : buildCaptionCard(idx); }
 
 function renderChunk(){
   const frag = document.createDocumentFragment();
   const end = Math.min(rendered + CHUNK, view.length);
   for (let k = rendered; k < end; k++) frag.appendChild(buildCard(view[k]));
   listEl.appendChild(frag);
-  rendered = end;
-  updateSentinel();
+  rendered = end; updateSentinel();
 }
 function updateSentinel(){
   if (rendered < view.length){ sentinel.style.display = "block"; if (!loading) sentinel.innerHTML = ""; }
@@ -256,8 +246,7 @@ function updateSentinel(){
 }
 function loadMore(){
   if (loading || rendered >= view.length) return;
-  loading = true;
-  sentinel.style.display = "block";
+  loading = true; sentinel.style.display = "block";
   sentinel.innerHTML = '<div class="dotswrap"><span class="dots"><i></i><i></i><i></i></span></div>';
   setTimeout(() => { loading = false; renderChunk(); }, 280);
 }
@@ -265,29 +254,22 @@ function loadMore(){
 function applyFilter(filter=""){
   curFilter = (filter || "").trim().toLowerCase();
   loading = false;
-  view = [];
-  if (MODE === "prompts"){
-    for (let g = 0; g < GROUPS.length; g++){            // 편 순서 유지 (첫 편이 위)
-      const ep = GROUPS[g].ep.toLowerCase();
-      const hit = GROUPS[g].items.some(i => (ROWS[i][CH.clipKey]||"").toLowerCase().includes(curFilter));
-      if (!curFilter || ep.includes(curFilter) || hit) view.push(g);
-    }
-  } else {
-    for (let i = ROWS.length - 1; i >= 0; i--){         // 캡션은 최신순
-      const title = (ROWS[i]["요리/주제"] || "").toLowerCase();
-      if (!curFilter || title.includes(curFilter)) view.push(i);
-    }
+  const idxs = [];
+  for (let g = 0; g < GROUPS.length; g++){
+    const grp = GROUPS[g];
+    const inTitle = grp.title.toLowerCase().includes(curFilter);
+    const inItems = grp.items.some(it =>
+      it.label.toLowerCase().includes(curFilter) || (CLIPTEXTS[it.ct]||"").toLowerCase().includes(curFilter));
+    if (!curFilter || inTitle || inItems) idxs.push(g);
   }
-  listEl.innerHTML = "";
-  rendered = 0;
+  view = CH.newest ? idxs.reverse() : idxs;
+  listEl.innerHTML = ""; rendered = 0;
   if (!view.length){
     sentinel.style.display = "none"; sentinel.innerHTML = "";
-    const empty = curFilter ? "검색 결과가 없어요." : (MODE==="prompts" ? "아직 프롬프트가 없어요." : "아직 캡션이 없어요.");
-    listEl.innerHTML = `<div class="state">${empty}</div>`;
+    listEl.innerHTML = `<div class="state">${curFilter ? "검색 결과가 없어요." : "아직 내용이 없어요."}</div>`;
     return;
   }
-  renderChunk();
-  window.scrollTo({ top: 0 });
+  renderChunk(); window.scrollTo({ top: 0 });
 }
 
 async function copyText(text){
@@ -309,7 +291,7 @@ function showToast(msg, err=false){
 listEl.addEventListener("click", async (e) => {
   const pf = e.target.closest(".pf");
   if (!pf) return;
-  const text = ROWS[+pf.dataset.i][pf.dataset.k];
+  const text = CLIPTEXTS[+pf.dataset.ct];
   const ok = await copyText(text);
   if (ok){
     pf.classList.add("copied");
@@ -333,14 +315,13 @@ fetch(CH.csv + "?v=" + Date.now())
   .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
   .then(text => {
     const grid = parseCSV(text).filter(row => row.some(c => (c||"").trim() !== ""));
-    const header = grid.shift();
-    ROWS = grid.map(cols => { const o = {}; header.forEach((h,idx)=> o[h.trim()] = cols[idx] || ""); return o; });
-    if (MODE === "prompts"){
-      buildGroups();
-      document.getElementById("sub").textContent = CH.sub + " · " + GROUPS.length + "편 " + ROWS.length + "클립";
-    } else {
-      document.getElementById("sub").textContent = CH.sub + " · " + ROWS.length + "개";
-    }
+    HEADERS = (grid.shift() || []).map(h => (h||"").trim());
+    ROWS = grid.map(cols => { const o = {}; HEADERS.forEach((h,idx)=> o[h] = cols[idx] || ""); return o; });
+    buildGroups();
+    const cnt = (CH.kind === "프롬프트")
+      ? (GROUPS.length + "편 " + CLIPTEXTS.length + "클립")
+      : (GROUPS.length + "개");
+    document.getElementById("sub").textContent = CH.sub + " · " + cnt;
     applyFilter("");
   })
   .catch(err => {
