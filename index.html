@@ -98,23 +98,10 @@ function parseCSV(text){
   return rows;
 }
 
-function countText(text, kind){
+function countText(text){
   const grid = parseCSV(text).filter(row => row.some(c => (c||"").trim() !== ""));
-  if (!grid.length) return kind === "프롬프트" ? "0편 0클립" : "0편";
-  const HEADERS = (grid.shift() || []).map(h => (h||"").trim());
-  const statusCol = HEADERS.find(h => /^(비고|상태)$/.test(h)) || "";
-  let titleCol = HEADERS.find(h => /^(주제|요리\/주제|편|제목)$/.test(h));
-  if (!titleCol) titleCol = HEADERS.find(h => h && h !== statusCol) || HEADERS[0];
-  const ti = HEADERS.indexOf(titleCol);
-  const itemIdx = HEADERS.map((h,i)=>({h,i})).filter(o => o.h && o.h!==statusCol && o.h!==titleCol).map(o=>o.i);
-  const seen = new Set(); let clips = 0;
-  grid.forEach(cols => {
-    const t = ((cols[ti]||"").trim()) || "(제목없음)";
-    seen.add(t);
-    itemIdx.forEach(i => { if ((cols[i]||"").trim()) clips++; });
-  });
-  const eds = seen.size;
-  return kind === "프롬프트" ? (eds + "편 " + clips + "클립") : (eds + "편");
+  const n = Math.max(0, grid.length - 1);   // 헤더 제외 데이터 행 수 = 편 수 (한 행 = 한 편)
+  return n + "편";
 }
 
 CH_META.forEach(m => {
@@ -122,7 +109,7 @@ CH_META.forEach(m => {
   if (!el) return;
   fetch(m.key + ".csv?v=" + Date.now())
     .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-    .then(t => { el.textContent = countText(t, m.kind); })
+    .then(t => { el.textContent = countText(t); })
     .catch(() => { el.textContent = "—"; });
 });
 </script>

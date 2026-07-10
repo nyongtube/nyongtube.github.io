@@ -102,7 +102,7 @@
 //       - 그 밖의 칸은 "첫 줄 = 버튼 이름, 아래 = 복사 내용" (프롬프트용)
 //   · 같은 제목을 여러 행에 쓰면 한 카드로 합쳐짐 (세로 확장)
 const CHANNELS = {
-  ginger: { name:"셰프진저", sub:"Chef Ginger", no:1, csv:"ginger.csv", newest:true,  kind:"캡션" },
+  ginger: { name:"셰프진저 캡션", sub:"Chef Ginger", no:1, csv:"ginger.csv", newest:true,  kind:"캡션" },
   human:  { name:"셰프진저 프롬프트", sub:"클립별 영상 프롬프트", no:2, csv:"human.csv", newest:true, unit:"클립", kind:"프롬프트",
             hint:"제목을 탭하면 펼쳐지고, 각 칸을 탭하면 내용이 복사돼요." },
   nubi:   { name:"임시 1", sub:"", no:3, csv:"nubi.csv", newest:true, kind:"캡션" },
@@ -135,7 +135,7 @@ const listEl = document.getElementById("list");
 const toastEl = document.getElementById("toast");
 let toastTimer, ROWS = [], HEADERS = [], GROUPS = [], CLIPTEXTS = [], HAS_STATUS = false;
 
-document.getElementById("ttl").childNodes[0].nodeValue = CH.kind || "캡션";
+document.getElementById("ttl").childNodes[0].nodeValue = CH.name;
 document.getElementById("sub").textContent = "";
 document.getElementById("dot").textContent = CH.no || "";
 document.getElementById("q").placeholder = CH.name + " 검색…";
@@ -166,16 +166,14 @@ function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<
 
 // ── 데이터 → 그룹(카드) 구성 ───────────────────────────────
 function buildGroups(){
-  GROUPS = []; CLIPTEXTS = []; const idx = {};
+  GROUPS = []; CLIPTEXTS = [];
   const statusCol = HEADERS.find(h => STATUS_RE.test(h)) || "";
   let titleCol = HEADERS.find(h => TITLE_RE.test(h));
   if (!titleCol) titleCol = HEADERS.find(h => h && h !== statusCol) || HEADERS[0]; // 이름 못 찾으면 상태 아닌 첫 칸
   HAS_STATUS = !!statusCol;
   const itemCols = HEADERS.filter(h => h && h !== statusCol && h !== titleCol);
-  ROWS.forEach(r => {
-    const t = (r[titleCol]||"").trim() || "(제목없음)";
-    if (!(t in idx)){ idx[t] = GROUPS.length; GROUPS.push({ title: t, status: "", items: [] }); }
-    const grp = GROUPS[idx[t]];
+  ROWS.forEach(r => {                                   // 한 행 = 한 카드 (제목 같아도 합치지 않음)
+    const grp = { title: (r[titleCol]||"").trim() || "(제목없음)", status: "", items: [] };
     if (statusCol && (r[statusCol]||"").trim()) grp.status = r[statusCol].trim();
     itemCols.forEach(col => {
       const raw = r[col] || "";
@@ -186,6 +184,7 @@ function buildGroups(){
       const ct = CLIPTEXTS.length; CLIPTEXTS.push(text);
       grp.items.push({ label, ct, cls });
     });
+    GROUPS.push(grp);
   });
 }
 
@@ -319,10 +318,7 @@ fetch(CH.csv + "?v=" + Date.now())
     HEADERS = (grid.shift() || []).map(h => (h||"").trim());
     ROWS = grid.map(cols => { const o = {}; HEADERS.forEach((h,idx)=> o[h] = cols[idx] || ""); return o; });
     buildGroups();
-    const cnt = (CH.kind === "프롬프트")
-      ? (GROUPS.length + "편 " + CLIPTEXTS.length + "클립")
-      : (GROUPS.length + "편");
-    document.getElementById("sub").textContent = cnt;
+    document.getElementById("sub").textContent = GROUPS.length + "편";
     applyFilter("");
   })
   .catch(err => {
