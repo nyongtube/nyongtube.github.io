@@ -42,6 +42,7 @@
   .nm{font-weight:600;font-size:.97rem;word-break:break-word;}
   .badge{font-size:.66rem;font-weight:600;color:#fff;background:var(--muted);padding:3px 7px;border-radius:999px;white-space:nowrap;}
   .badge.up{background:var(--ok);} .badge.new{background:var(--accent);}
+  .badge.gen{background:#3E82C4;} .badge.edit{background:#D8952E;}
   .chev{transition:transform .2s;opacity:.4;flex-shrink:0;}
   .card.open .chev{transform:rotate(180deg);}
   .body{display:none;padding:0 12px 12px;}
@@ -103,7 +104,7 @@
 const CHANNELS = {
   ginger: { name:"셰프진저", sub:"Chef Ginger", emoji:"🐱", csv:"ginger.csv", newest:true,  kind:"캡션" },
   human:  { name:"셰프진저 프롬프트", sub:"클립별 영상 프롬프트", emoji:"🎬", csv:"human.csv", newest:false, unit:"클립", kind:"프롬프트",
-            hint:"편을 탭하면 펼쳐지고, 클립을 탭하면 프롬프트가 복사돼요." },
+            firstLineLabel:true, hint:"편을 탭하면 펼쳐지고, 클립을 탭하면 프롬프트가 복사돼요." },
   nubi:   { name:"누비툰", sub:"게으른 고양이", emoji:"🐈", csv:"nubi.csv", newest:true, kind:"캡션" },
   dokgam: { name:"독감툰", sub:"토끼와 감자", emoji:"🐰", csv:"dokgam.csv", newest:true, kind:"캡션" },
 };
@@ -114,7 +115,17 @@ const PLATMAP = {
   "YouTube Title":       { label:"YouTube 제목", cls:"t-ytt" },
   "YouTube Description": { label:"YouTube 설명", cls:"t-ytd" },
 };
-const STATUS_RE = /^(비고|상태)$/;
+const STATUS_RE = /^(비고|상태)$/;          // 이 칸 = 상태 뱃지 (위치 무관)
+const TITLE_RE  = /^(주제|요리\/주제|편|제목)$/; // 이 칸 = 카드 제목 (위치 무관)
+
+// 상태값 → 뱃지 색
+function statusClass(s){
+  if (/업로드/.test(s)) return "up";    // 업로드 완료 → 초록
+  if (/편집/.test(s))   return "edit";  // 편집중 → 앰버
+  if (/생성/.test(s))   return "gen";   // 영상 생성 완료 → 파랑
+  if (/NEW/i.test(s))   return "new";
+  return "";                             // 제작전 등 → 회색
+}
 
 const params = new URLSearchParams(location.search);
 const chKey = params.get("ch") || "ginger";
@@ -166,10 +177,11 @@ function splitLabeled(raw, fallbackLabel){
 // ── 데이터 → 그룹(카드) 구성 ───────────────────────────────
 function buildGroups(){
   GROUPS = []; CLIPTEXTS = []; const idx = {};
-  const titleCol = HEADERS[0];
   const statusCol = HEADERS.find(h => STATUS_RE.test(h)) || "";
+  let titleCol = HEADERS.find(h => TITLE_RE.test(h));
+  if (!titleCol) titleCol = HEADERS.find(h => h && h !== statusCol) || HEADERS[0]; // 이름 못 찾으면 상태 아닌 첫 칸
   HAS_STATUS = !!statusCol;
-  const itemCols = HEADERS.slice(1).filter(h => h && h !== statusCol);
+  const itemCols = HEADERS.filter(h => h && h !== statusCol && h !== titleCol);
   ROWS.forEach(r => {
     const t = (r[titleCol]||"").trim() || "(제목없음)";
     if (!(t in idx)){ idx[t] = GROUPS.length; GROUPS.push({ title: t, status: "", items: [] }); }
@@ -180,7 +192,8 @@ function buildGroups(){
       if (!raw.trim()) return;
       let label, text, cls;
       if (PLATMAP[col]){ label = PLATMAP[col].label; text = raw.trim(); cls = PLATMAP[col].cls; }
-      else { const s = splitLabeled(raw, col); label = s.label; text = s.text; cls = "t-ytd"; }
+      else if (CH.firstLineLabel){ const s = splitLabeled(raw, col); label = s.label; text = s.text; cls = "t-ytd"; }
+      else { label = col; text = raw.trim(); cls = "t-ytd"; }   // 캡션형: 칸 전체 복사, 헤더가 라벨
       const ct = CLIPTEXTS.length; CLIPTEXTS.push(text);
       grp.items.push({ label, ct, cls });
     });
@@ -216,8 +229,7 @@ function buildCard(g){
   let badge = "";
   if (HAS_STATUS){
     if (grp.status){
-      const cls = /업로드/.test(grp.status) ? "up" : (/NEW/i.test(grp.status) ? "new" : "");
-      badge = `<span class="badge ${cls}">${escapeHtml(grp.status)}</span>`;
+      badge = `<span class="badge ${statusClass(grp.status)}">${escapeHtml(grp.status)}</span>`;
     }
   } else {
     badge = `<span class="badge">${grp.items.length}${CH.unit || "개"}</span>`;
