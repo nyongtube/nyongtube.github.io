@@ -26,16 +26,12 @@
   .head p{color:var(--muted);font-size:.86rem;margin:0;}
   .grid{display:flex;flex-direction:column;gap:12px;max-width:520px;margin:0 auto;}
   a.ch{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);
-    background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 18px;
+    background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 20px;
     transition:transform .08s, box-shadow .15s;}
   a.ch:active{transform:scale(.99);}
-  a.ch .em{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-size:26px;flex-shrink:0;}
   a.ch .tx{flex:1;min-width:0;}
-  a.ch .nm{font-weight:700;font-size:1.08rem;}
-  a.ch .ds{color:var(--muted);font-size:.8rem;margin-top:2px;}
+  a.ch .nm{font-weight:700;font-size:1.12rem;}
   a.ch .go{color:var(--muted);font-size:1.3rem;opacity:.5;}
-  .g-ginger .em{background:#FBE9E1;} .g-human .em{background:#FBE9E1;}
-  .g-nubi .em{background:#EAF3EC;}   .g-dokgam .em{background:#F6ECF3;}
   .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:26px;}
 </style>
 </head>
@@ -46,24 +42,20 @@
     <p>채널을 고르면 캡션·프롬프트를 탭 한 번으로 복사할 수 있어요.</p>
   </div>
   <div class="grid">
-    <a class="ch g-ginger" href="channel.html?ch=ginger">
-      <span class="em">🐱</span>
-      <span class="tx"><div class="nm">셰프진저</div><div class="ds">Chef Ginger · 요리하는 고양이</div></span>
+    <a class="ch" href="channel.html?ch=ginger">
+      <span class="tx"><div class="nm">ginger</div></span>
       <span class="go">→</span>
     </a>
-    <a class="ch g-human" href="channel.html?ch=human">
-      <span class="em">🎬</span>
-      <span class="tx"><div class="nm">셰프진저 프롬프트</div><div class="ds">클립별 영상 생성 프롬프트</div></span>
+    <a class="ch" href="channel.html?ch=human">
+      <span class="tx"><div class="nm">human</div></span>
       <span class="go">→</span>
     </a>
-    <a class="ch g-nubi" href="channel.html?ch=nubi">
-      <span class="em">🐈</span>
-      <span class="tx"><div class="nm">누비툰</div><div class="ds">게으른 고양이 공감</div></span>
+    <a class="ch" href="channel.html?ch=nubi">
+      <span class="tx"><div class="nm">nubi</div></span>
       <span class="go">→</span>
     </a>
-    <a class="ch g-dokgam" href="channel.html?ch=dokgam">
-      <span class="em">🐰</span>
-      <span class="tx"><div class="nm">독감툰</div><div class="ds">토끼와 감자 커플툰</div></span>
+    <a class="ch" href="channel.html?ch=dokgam">
+      <span class="tx"><div class="nm">dokgam</div></span>
       <span class="go">→</span>
     </a>
   </div>
