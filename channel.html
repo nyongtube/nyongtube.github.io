@@ -28,7 +28,7 @@
   .dot{width:30px;height:30px;border-radius:9px;background:var(--accent);
     display:grid;place-items:center;font-size:17px;box-shadow:0 2px 0 var(--accent-deep);flex-shrink:0;}
   .ttl{font-family:"Fredoka",sans-serif;font-weight:700;font-size:1.12rem;margin:0;letter-spacing:-.01em;flex:1;min-width:0;}
-  .ttl small{display:block;color:var(--muted);font-size:.72rem;font-weight:400;margin-top:1px;}
+  .ttl small{color:var(--muted);font-size:.72rem;font-weight:500;margin-left:8px;white-space:nowrap;}
   .search{position:relative;}
   .search input{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:13px;
     padding:13px 14px 13px 40px;font-size:16px;color:var(--ink);outline:none;transition:border-color .15s;}
@@ -136,10 +136,10 @@ const toastEl = document.getElementById("toast");
 let toastTimer, ROWS = [], HEADERS = [], GROUPS = [], CLIPTEXTS = [], HAS_STATUS = false;
 
 document.getElementById("ttl").childNodes[0].nodeValue = CH.kind || "캡션";
-document.getElementById("sub").textContent = CH.sub;
+document.getElementById("sub").textContent = "";
 document.getElementById("dot").textContent = CH.emoji;
 document.getElementById("q").placeholder = CH.name + " 검색…";
-document.title = CH.name + " " + (CH.kind || "캡션");
+document.title = CH.name;
 if (CH.hint) document.getElementById("hint").textContent = CH.hint;
 
 // ── CSV 파서 (따옴표·줄바꿈 지원) ──────────────────────────
@@ -321,14 +321,14 @@ fetch(CH.csv + "?v=" + Date.now())
     buildGroups();
     const cnt = (CH.kind === "프롬프트")
       ? (GROUPS.length + "편 " + CLIPTEXTS.length + "클립")
-      : (GROUPS.length + "개");
-    document.getElementById("sub").textContent = CH.sub + " · " + cnt;
+      : (GROUPS.length + "편");
+    document.getElementById("sub").textContent = cnt;
     applyFilter("");
   })
   .catch(err => {
     sentinel.style.display = "none";
     listEl.innerHTML = `<div class="state">CSV를 불러오지 못했어요 (${escapeHtml(String(err.message||err))}).<br>깃허브에 올린 뒤 열면 정상 작동해요.</div>`;
-    document.getElementById("sub").textContent = CH.sub;
+    document.getElementById("sub").textContent = "";
   });
 </script>
 </body>
