@@ -19,14 +19,14 @@ jobs:
 
       - name: Pull Google Sheets tabs → CSV
         run: |
-          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1439007533&single=true&output=csv" -o ginger.csv
-          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1225639265&single=true&output=csv" -o human.csv
-          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=244099713&single=true&output=csv" -o nubi.csv
-          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=2094671212&single=true&output=csv" -o dokgam.csv
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1439007533&single=true&output=csv" -o first.csv
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1225639265&single=true&output=csv" -o second.csv
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=244099713&single=true&output=csv" -o third.csv
+          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=2094671212&single=true&output=csv" -o fourth.csv
 
       - name: Sanity check (must look like CSV, not an error page)
         run: |
-          for f in ginger.csv human.csv nubi.csv dokgam.csv; do
+          for f in first.csv second.csv third.csv fourth.csv; do
             head -c 1 "$f" | grep -q '<' && { echo "::error::$f looks like HTML, not CSV. Check the sheet is published."; exit 1; } || true
             echo "$f: $(wc -c < "$f") bytes"
           done
@@ -35,7 +35,7 @@ jobs:
         run: |
           git config user.name "caption-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ginger.csv human.csv nubi.csv dokgam.csv
+          git add first.csv second.csv third.csv fourth.csv
           if git diff --staged --quiet; then
             echo "변경 없음 — 커밋 건너뜀"
           else
