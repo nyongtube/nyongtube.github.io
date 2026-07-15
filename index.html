@@ -70,10 +70,10 @@
 <script>
 // 각 채널의 CSV를 불러와 개수를 계산해 버튼 아래에 표시.
 const CH_META = [
-  { key:"ginger", kind:"캡션" },
-  { key:"human",  kind:"캡션" },
-  { key:"nubi",   kind:"캡션" },
-  { key:"dokgam", kind:"캡션" },
+  { key:"ginger", csv:"first.csv",  kind:"캡션" },
+  { key:"human",  csv:"second.csv", kind:"캡션" },
+  { key:"nubi",   csv:"third.csv",  kind:"캡션" },
+  { key:"dokgam", csv:"fourth.csv", kind:"캡션" },
 ];
 
 function parseCSV(text){
@@ -105,7 +105,7 @@ function countText(text){
 CH_META.forEach(m => {
   const el = document.getElementById("cnt-" + m.key);
   if (!el) return;
-  fetch(m.key + ".csv?v=" + Date.now())
+  fetch(m.csv + "?v=" + Date.now())
     .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
     .then(t => { el.textContent = countText(t); })
     .catch(() => { el.textContent = "—"; });
