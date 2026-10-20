@@ -24,9 +24,9 @@
   .hero{padding:30px 22px 6px;}
   .hero .dot{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:13px;
     background:var(--accent);font-size:25px;box-shadow:0 3px 0 var(--accent-deep);flex-shrink:0;}
-  .hero h1{font-family:"Fredoka",sans-serif;font-weight:700;font-size:2rem;line-height:1.15;margin:0;letter-spacing:-.02em;}
+  .hero h1{font-family:"Fredoka",sans-serif;font-weight:700;font-size:clamp(1.5rem,8vw,2rem);line-height:1.15;margin:0;letter-spacing:-.02em;white-space:nowrap;}
   .hero .row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
-  .hero .cnt{color:var(--muted);font-size:.86rem;margin:0;}
+  .hero .cnt{color:var(--muted);font-size:.86rem;margin:0;align-self:flex-end;padding-bottom:7px;white-space:nowrap;}
   .top{position:sticky;top:0;z-index:10;
     background:linear-gradient(180deg,var(--paper) 72%,rgba(251,244,236,0));padding:14px 16px 10px;}
   .search{position:relative;}
@@ -80,8 +80,8 @@
     <div class="row">
       <span class="dot">📋</span>
       <h1>Spice Village</h1>
+      <p class="cnt" id="sub">불러오는 중…</p>
     </div>
-    <p class="cnt" id="sub">불러오는 중…</p>
   </header>
   <div class="top">
     <div class="search">
