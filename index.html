@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="robots" content="noindex">
-<title>Copy Hub</title>
+<title>Spice Village Caption Hub</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiNGMjkxM0QiLz4KICA8cmVjdCB4PSIxNiIgeT0iMTQiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzOCIgcng9IjUiIGZpbGw9IiNGRkY2RUMiLz4KICA8cmVjdCB4PSIyNCIgeT0iMTEiIHdpZHRoPSIxNiIgaGVpZ2h0PSI5IiByeD0iMy41IiBmaWxsPSIjQzk3NjJFIi8+CiAgPHJlY3QgeD0iMjcuNSIgeT0iOC41IiB3aWR0aD0iOSIgaGVpZ2h0PSI2IiByeD0iMyIgZmlsbD0iI0ZCRDlCMCIvPgogIDxnIHN0cm9rZT0iI0YyOTEzRCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iMjkiIHgyPSI0MSIgeTI9IjI5Ii8+CiAgICA8bGluZSB4MT0iMjMiIHkxPSIzNiIgeDI9IjQxIiB5Mj0iMzYiLz4KICAgIDxsaW5lIHgxPSIyMyIgeTE9IjQzIiB4Mj0iMzQiIHkyPSI0MyIvPgogIDwvZz4KPC9zdmc+Cg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,70 +12,123 @@
 <style>
   :root{
     --paper:#FBF4EC; --card:#FFFFFF; --ink:#2A2320; --muted:#9A8C7E;
-    --accent:#E0792E; --accent-deep:#C0392B; --line:#ECE2D6; font-size:16px;
+    --accent:#E0792E; --accent-deep:#C0392B; --line:#ECE2D6;
+    --tiktok:#161823; --instagram:#C13584; --ytt:#CC0000; --ytd:#E0594B;
+    --ok:#2E9E6B; --radius:16px; font-size:16px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);min-height:100vh;
+  body{background:var(--paper);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-    padding:30px 18px 60px;}
-  .head{margin:8px 4px 35px;}
-  .head .dot{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:13px;
-    background:var(--accent);font-size:25px;box-shadow:0 3px 0 var(--accent-deep);margin-bottom:14px;}
-  h1{font-family:"Fredoka",sans-serif;font-weight:700;font-size:2rem;margin:0 0 4px 8px;letter-spacing:-.02em;display:inline-block;}
-  .head p{color:var(--muted);font-size:.86rem;margin:0;}
-  .grid{display:flex;flex-direction:column;gap:12px;margin:0 auto;}
-  a.ch{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);
-    background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 20px;
-    transition:transform .08s, box-shadow .15s;}
-  a.ch:active{transform:scale(.99);}
-  a.ch .no{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;
-    background:#FBE9E1;color:var(--accent);font-family:"Fredoka",sans-serif;font-weight:700;font-size:1.2rem;}
-  a.ch .tx{flex:1;min-width:0;}
-  a.ch .nm{font-weight:700;font-size:1.12rem;}
-  a.ch .cnt{color:var(--muted);font-size:.78rem;margin-top:3px;}
-  a.ch .go{color:var(--muted);font-size:1.3rem;opacity:.5;}
-  .foot{text-align:center;color:var(--muted);font-size:.72rem;margin-top:26px;}
+    line-height:1.45;padding-bottom:60px;}
+  .top{position:sticky;top:0;z-index:10;
+    background:linear-gradient(180deg,var(--paper) 72%,rgba(251,244,236,0));padding:14px 16px 10px;}
+  .bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .back{width:30px;height:34px;margin-left:-4px;display:grid;place-items:center;text-decoration:none;
+    color:var(--muted);flex-shrink:0;transition:color .15s;}
+  .back:active{color:var(--ink);}
+  .dot{width:30px;height:30px;border-radius:9px;background:#FBE9E1;color:var(--accent);
+    display:grid;place-items:center;font-family:"Fredoka",sans-serif;font-weight:700;font-size:1rem;flex-shrink:0;}
+  .ttl{font-family:"Fredoka",sans-serif;font-weight:700;font-size:1.12rem;margin:0;letter-spacing:-.01em;flex:1;min-width:0;}
+  .ttl small{color:var(--muted);font-size:.72rem;font-weight:500;margin-left:8px;white-space:nowrap;}
+  .bar{margin-top:4px;}
+  .search{position:relative;}
+  .search input{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:13px;
+    padding:13px 14px 13px 40px;font-size:16px;color:var(--ink);outline:none;transition:border-color .15s;}
+  .search input:focus{border-color:var(--accent);}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.45;}
+  .wrap{padding:4px 16px 0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:11px;overflow:hidden;}
+  .head{display:flex;align-items:center;gap:10px;padding:15px;cursor:pointer;user-select:none;}
+  .num{font-family:"Fredoka",sans-serif;font-weight:600;color:var(--accent);font-size:.85rem;min-width:22px;}
+  .names{flex:1;min-width:0;}
+  .nm{font-weight:600;font-size:.97rem;word-break:break-word;}
+  .badge{font-size:.66rem;font-weight:600;color:#fff;background:var(--muted);padding:3px 7px;border-radius:999px;white-space:nowrap;}
+  .badge.up{background:var(--ok);} .badge.book{background:#3E82C4;} .badge.done{background:#D8952E;}
+  .chev{transition:transform .2s;opacity:.4;flex-shrink:0;}
+  .card.open .chev{transform:rotate(180deg);}
+  .body{display:none;padding:0 12px 12px;}
+  .card.open .body{display:block;}
+  .pf{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;border:1px solid var(--line);
+    background:#FCFAF7;border-radius:12px;margin-top:8px;padding:12px 14px;cursor:pointer;
+    font:inherit;color:inherit;transition:background .15s,border-color .15s,transform .08s;}
+  .pf:active{transform:scale(.995);}
+  .pf.copied{background:#EAF7F0;border-color:var(--ok);}
+  .pf-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pf .pl{font-size:.82rem;font-weight:700;letter-spacing:.01em;}
+  .tap{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:600;flex-shrink:0;}
+  .pf.copied .tap{color:var(--ok);}
+  .pv{font-size:.82rem;color:var(--muted);line-height:1.5;white-space:pre-wrap;word-break:break-word;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .t-tiktok .pl{color:var(--tiktok);}
+  .t-instagram .pl{color:var(--instagram);}
+  .t-ytt .pl{color:var(--ytt);}
+  .t-ytd .pl{color:var(--ink);}
+  .state{text-align:center;color:var(--muted);padding:40px 20px;font-size:.9rem;}
+  .loadmore{min-height:1px;}
+  .dotswrap{display:flex;justify-content:center;padding:14px 0 26px;}
+  .dots{display:inline-flex;gap:5px;}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:cbounce 1s infinite ease-in-out;}
+  .dots i:nth-child(2){animation-delay:.15s;} .dots i:nth-child(3){animation-delay:.3s;}
+  @keyframes cbounce{0%,80%,100%{transform:translateY(0);opacity:.3;}40%{transform:translateY(-5px);opacity:.9;}}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+    padding:11px 20px;border-radius:999px;font-size:.86rem;font-weight:600;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.2);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);} .toast.err{background:var(--accent-deep);}
+  .hint{color:var(--muted);font-size:.72rem;text-align:center;padding:6px 20px 0;}
 </style>
 </head>
 <body>
-  <div class="head">
-    <span class="dot">📋</span>
-    <h1>Copy Hub</h1>
+  <div class="top">
+    <div class="bar">
+      
+      <span class="dot">📋</span>
+      <h1 class="ttl">Spice Village Caption Hub<small id="sub">불러오는 중…</small></h1>
+    </div>
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="q" type="text" placeholder="검색…" autocomplete="off">
+    </div>
   </div>
-  <div class="grid">
-    <a class="ch" href="channel.html?ch=ginger">
-      <span class="no">1</span>
-      <span class="tx"><div class="nm">Chef Ginger Caption</div><div class="cnt" id="cnt-ginger">불러오는 중…</div></span>
-      <span class="go">→</span>
-    </a>
-    <a class="ch" href="channel.html?ch=human">
-      <span class="no">2</span>
-      <span class="tx"><div class="nm">SL9 Caption</div><div class="cnt" id="cnt-human">불러오는 중…</div></span>
-      <span class="go">→</span>
-    </a>
-    <a class="ch" href="channel.html?ch=nubi">
-      <span class="no">3</span>
-      <span class="tx"><div class="nm">임시 2</div><div class="cnt" id="cnt-nubi">불러오는 중…</div></span>
-      <span class="go">→</span>
-    </a>
-    <a class="ch" href="channel.html?ch=dokgam">
-      <span class="no">4</span>
-      <span class="tx"><div class="nm">임시 3</div><div class="cnt" id="cnt-dokgam">불러오는 중…</div></span>
-      <span class="go">→</span>
-    </a>
-  </div>
-  <div class="foot">탭 한 번으로 복사 · 붙여넣기만 하면 끝</div>
+  <div class="wrap" id="list"><div class="state">불러오는 중…</div></div>
+  <div class="hint" id="hint">제목을 탭하면 펼쳐지고, 항목을 탭하면 바로 복사돼요.</div>
+  <div class="toast" id="toast"></div>
 
 <script>
-// 각 채널의 CSV를 불러와 개수를 계산해 버튼 아래에 표시.
-const CH_META = [
-  { key:"ginger", csv:"first.csv",  kind:"캡션" },
-  { key:"human",  csv:"second.csv", kind:"캡션" },
-  { key:"nubi",   csv:"third.csv",  kind:"캡션" },
-  { key:"dokgam", csv:"fourth.csv", kind:"캡션" },
-];
+// ── 설정 ──────────────────────────────────────────────────
+// 모든 채널이 동일한 구조로 동작:
+//   · A열 = 카드 제목(캡션의 요리/주제 · 프롬프트의 편)
+//   · "비고"/"상태" 칸 = 상태 뱃지 (복사 버튼 아님)
+//   · 그 외 모든 칸 = 복사 버튼
+//       - 알려진 플랫폼 칸(TikTok 등)은 칸 전체가 내용, 버튼 이름 = 플랫폼
+//       - 그 밖의 칸은 "첫 줄 = 버튼 이름, 아래 = 복사 내용" (프롬프트용)
+//   · 같은 제목을 여러 행에 쓰면 한 카드로 합쳐짐 (세로 확장)
+const CH = { name:"Spice Village Caption Hub", csv:"first.csv", newest:true };
+// 알려진 플랫폼 칸 → 버튼 이름/색. (칸 전체가 복사 내용)
+const PLATMAP = {
+  "TikTok":              { label:"TikTok",       cls:"t-tiktok" },
+  "Instagram":           { label:"Instagram",    cls:"t-instagram" },
+  "YouTube Title":       { label:"YouTube 제목", cls:"t-ytt" },
+  "YouTube Description": { label:"YouTube 설명", cls:"t-ytd" },
+};
+const STATUS_RE = /^(비고|상태)$/;          // 이 칸 = 상태 뱃지 (위치 무관)
+const TITLE_RE  = /^(주제|요리\/주제|편|제목)$/; // 이 칸 = 카드 제목 (위치 무관)
 
+// 상태값 → 뱃지 색
+function statusClass(s){
+  if (/업로드/.test(s)) return "up";     // 업로드 → 초록
+  if (/예약/.test(s))   return "book";   // 예약 → 파랑
+  if (/완료/.test(s))   return "done";   // 완료 → 앰버
+  return "";                              // 그 외 → 연회색
+}
+
+const listEl = document.getElementById("list");
+const toastEl = document.getElementById("toast");
+let toastTimer, ROWS = [], HEADERS = [], GROUPS = [], CLIPTEXTS = [], HAS_STATUS = false;
+
+document.getElementById("q").placeholder = "캡션 검색…";
+
+// ── CSV 파서 (따옴표·줄바꿈 지원) ──────────────────────────
 function parseCSV(text){
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const rows = []; let row = [], cur = "", inQ = false;
@@ -95,21 +148,170 @@ function parseCSV(text){
   if (cur !== "" || row.length){ row.push(cur); rows.push(row); }
   return rows;
 }
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function countText(text){
-  const grid = parseCSV(text).filter(row => row.some(c => (c||"").trim() !== ""));
-  const n = Math.max(0, grid.length - 1);   // 헤더 제외 데이터 행 수 = 편 수 (한 행 = 한 편)
-  return n + "편";
+// ── 데이터 → 그룹(카드) 구성 ───────────────────────────────
+function buildGroups(){
+  GROUPS = []; CLIPTEXTS = [];
+  const statusCol = HEADERS.find(h => STATUS_RE.test(h)) || "";
+  let titleCol = HEADERS.find(h => TITLE_RE.test(h));
+  if (!titleCol) titleCol = HEADERS.find(h => h && h !== statusCol) || HEADERS[0]; // 이름 못 찾으면 상태 아닌 첫 칸
+  HAS_STATUS = !!statusCol;
+  const itemCols = HEADERS.filter(h => h && h !== statusCol && h !== titleCol);
+  ROWS.forEach(r => {                                   // 한 행 = 한 카드 (제목 같아도 합치지 않음)
+    const grp = { title: (r[titleCol]||"").trim() || "(제목없음)", status: "", items: [] };
+    if (statusCol && (r[statusCol]||"").trim()) grp.status = r[statusCol].trim();
+    itemCols.forEach(col => {
+      const raw = r[col] || "";
+      if (!raw.trim()) return;
+      let label, text, cls;
+      if (PLATMAP[col]){ label = PLATMAP[col].label; text = raw.trim(); cls = PLATMAP[col].cls; }
+      else { label = col; text = raw.trim(); cls = "t-ytd"; }   // 헤더가 버튼 이름, 칸 전체가 복사 내용
+      const ct = CLIPTEXTS.length; CLIPTEXTS.push(text);
+      grp.items.push({ label, ct, cls });
+    });
+    GROUPS.push(grp);
+  });
 }
 
-CH_META.forEach(m => {
-  const el = document.getElementById("cnt-" + m.key);
-  if (!el) return;
-  fetch(m.csv + "?v=" + Date.now())
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-    .then(t => { el.textContent = countText(t); })
-    .catch(() => { el.textContent = "—"; });
+// ── 렌더링 ────────────────────────────────────────────────
+const CHUNK = 15;
+let view = [], rendered = 0, curFilter = "", loading = false;
+
+const sentinel = document.createElement("div");
+sentinel.className = "loadmore"; sentinel.style.display = "none";
+listEl.after(sentinel);
+const io = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && rendered < view.length) loadMore();
+}, { rootMargin: "300px" });
+io.observe(sentinel);
+
+const CHEV = `<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>`;
+
+function buildCard(g){
+  const grp = GROUPS[g];
+  const card = document.createElement("div");
+  card.className = "card" + (curFilter ? " open" : "");
+  let btns = "";
+  grp.items.forEach(it => {
+    const text = CLIPTEXTS[it.ct] || "";
+    btns += `<button class="pf ${it.cls}" data-ct="${it.ct}">
+      <span class="pf-top"><span class="pl">${escapeHtml(it.label)}</span><span class="tap">탭하면 복사 📋</span></span>
+      <span class="pv">${escapeHtml(text)}</span>
+    </button>`;
+  });
+  let badge = "";
+  if (HAS_STATUS){
+    if (grp.status){
+      badge = `<span class="badge ${statusClass(grp.status)}">${escapeHtml(grp.status)}</span>`;
+    }
+  } else {
+    badge = `<span class="badge">${grp.items.length}${CH.unit || "개"}</span>`;
+  }
+  card.innerHTML = `
+    <div class="head">
+      <span class="num">${String(g+1).padStart(2,'0')}</span>
+      <span class="names"><span class="nm">${escapeHtml(grp.title)}</span></span>
+      ${badge}${CHEV}
+    </div>
+    <div class="body">${btns}</div>`;
+  card.querySelector(".head").addEventListener("click", () => card.classList.toggle("open"));
+  return card;
+}
+
+function renderChunk(){
+  const frag = document.createDocumentFragment();
+  const end = Math.min(rendered + CHUNK, view.length);
+  for (let k = rendered; k < end; k++) frag.appendChild(buildCard(view[k]));
+  listEl.appendChild(frag);
+  rendered = end; updateSentinel();
+}
+function updateSentinel(){
+  if (rendered < view.length){ sentinel.style.display = "block"; if (!loading) sentinel.innerHTML = ""; }
+  else { sentinel.style.display = "none"; sentinel.innerHTML = ""; }
+}
+function loadMore(){
+  if (loading || rendered >= view.length) return;
+  loading = true; sentinel.style.display = "block";
+  sentinel.innerHTML = '<div class="dotswrap"><span class="dots"><i></i><i></i><i></i></span></div>';
+  setTimeout(() => { loading = false; renderChunk(); }, 280);
+}
+
+function applyFilter(filter=""){
+  curFilter = (filter || "").trim().toLowerCase();
+  loading = false;
+  const idxs = [];
+  for (let g = 0; g < GROUPS.length; g++){
+    const grp = GROUPS[g];
+    const inTitle = grp.title.toLowerCase().includes(curFilter);
+    const inItems = grp.items.some(it =>
+      it.label.toLowerCase().includes(curFilter) || (CLIPTEXTS[it.ct]||"").toLowerCase().includes(curFilter));
+    if (!curFilter || inTitle || inItems) idxs.push(g);
+  }
+  view = CH.newest ? idxs.reverse() : idxs;
+  listEl.innerHTML = ""; rendered = 0;
+  if (!view.length){
+    sentinel.style.display = "none"; sentinel.innerHTML = "";
+    listEl.innerHTML = `<div class="state">${curFilter ? "검색 결과가 없어요." : "아직 내용이 없어요."}</div>`;
+    return;
+  }
+  renderChunk(); window.scrollTo({ top: 0 });
+}
+
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly","");
+      ta.style.position="fixed"; ta.style.top="-1000px"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand("copy"); document.body.removeChild(ta); return ok;
+    } catch(e2){ return false; }
+  }
+}
+function showToast(msg, err=false){
+  toastEl.textContent = msg; toastEl.className = "toast show" + (err?" err":"");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=> toastEl.className="toast", 1500);
+}
+listEl.addEventListener("click", async (e) => {
+  const pf = e.target.closest(".pf");
+  if (!pf) return;
+  const text = CLIPTEXTS[+pf.dataset.ct];
+  const ok = await copyText(text);
+  if (ok){
+    pf.classList.add("copied");
+    const tap = pf.querySelector(".tap");
+    const prev = tap ? tap.textContent : "";
+    if (tap) tap.textContent = "복사됨 ✓";
+    showToast("복사됐어요 ✓ — 붙여넣기만 하면 끝");
+    setTimeout(()=>{ pf.classList.remove("copied"); if (tap) tap.textContent = prev; }, 1400);
+  } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
 });
+
+let debTimer;
+document.getElementById("q").addEventListener("input", (e) => {
+  const v = e.target.value;
+  clearTimeout(debTimer);
+  debTimer = setTimeout(() => applyFilter(v), 150);
+});
+
+// ── CSV 로드 ───────────────────────────────────────────────
+fetch(CH.csv + "?v=" + Date.now())
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+  .then(text => {
+    const grid = parseCSV(text).filter(row => row.some(c => (c||"").trim() !== ""));
+    HEADERS = (grid.shift() || []).map(h => (h||"").trim());
+    ROWS = grid.map(cols => { const o = {}; HEADERS.forEach((h,idx)=> o[h] = cols[idx] || ""); return o; });
+    buildGroups();
+    document.getElementById("sub").textContent = GROUPS.length + "편";
+    applyFilter("");
+  })
+  .catch(err => {
+    sentinel.style.display = "none";
+    listEl.innerHTML = `<div class="state">CSV를 불러오지 못했어요 (${escapeHtml(String(err.message||err))}).<br>깃허브에 올린 뒤 열면 정상 작동해요.</div>`;
+    document.getElementById("sub").textContent = "";
+  });
 </script>
 </body>
 </html>
