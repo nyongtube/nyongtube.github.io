@@ -46,17 +46,24 @@
   .card.open .chev{transform:rotate(180deg);}
   .body{display:none;padding:0 12px 12px;}
   .card.open .body{display:block;}
-  .pf{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;border:1px solid var(--line);
-    background:#FCFAF7;border-radius:12px;margin-top:8px;padding:12px 14px;cursor:pointer;
-    font:inherit;color:inherit;transition:background .15s,border-color .15s,transform .08s;}
-  .pf:active{transform:scale(.995);}
+  .pf{display:flex;flex-direction:column;gap:8px;width:100%;text-align:left;border:1px solid var(--line);
+    background:#FCFAF7;border-radius:12px;margin-top:8px;padding:12px 14px;transition:background .15s,border-color .15s;}
   .pf.copied{background:#EAF7F0;border-color:var(--ok);}
-  .pf-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .pf .pl{font-size:.82rem;font-weight:700;letter-spacing:.01em;}
-  .tap{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:600;flex-shrink:0;}
-  .pf.copied .tap{color:var(--ok);}
-  .pv{font-size:.82rem;color:var(--muted);line-height:1.5;white-space:pre-wrap;word-break:break-word;
-    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .pf-top{display:flex;align-items:center;gap:8px;}
+  .pf .pl{font-size:.82rem;font-weight:700;letter-spacing:.01em;flex:1;min-width:0;}
+  .cp{margin-left:auto;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+    border:0;border-radius:999px;background:var(--accent);color:#fff;font:inherit;font-size:.76rem;font-weight:700;
+    padding:7px 13px;box-shadow:0 2px 0 var(--accent-deep);transition:transform .08s,background .15s;}
+  .cp:active{transform:translateY(1px);box-shadow:0 1px 0 var(--accent-deep);}
+  .pf.copied .cp{background:var(--ok);box-shadow:0 2px 0 #23794F;}
+  .pv{font-size:.86rem;color:var(--ink);line-height:1.6;white-space:pre-wrap;word-break:break-word;
+    max-height:calc(1.6em * 4);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    user-select:text;-webkit-user-select:text;padding-right:4px;}
+  .pvw{position:relative;}
+  .pvw.more::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;pointer-events:none;
+    background:linear-gradient(rgba(252,250,247,0),#FCFAF7);}
+  .pf.copied .pvw.more::after{background:linear-gradient(rgba(234,247,240,0),#EAF7F0);}
+  .pv::-webkit-scrollbar{width:4px;} .pv::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
   .t-tiktok .pl{color:var(--tiktok);}
   .t-instagram .pl{color:var(--instagram);}
   .t-ytt .pl{color:var(--ytt);}
@@ -90,7 +97,7 @@
     </div>
   </div>
   <div class="wrap" id="list"><div class="state">불러오는 중…</div></div>
-  <div class="hint" id="hint">제목을 탭하면 펼쳐지고, 항목을 탭하면 바로 복사돼요.</div>
+  <div class="hint" id="hint">제목을 탭하면 펼쳐져요. 내용은 칸 안에서 스크롤, 복사는 오른쪽 버튼으로.</div>
   <div class="toast" id="toast"></div>
 
 <script>
@@ -191,10 +198,10 @@ function buildCard(g){
   let btns = "";
   grp.items.forEach(it => {
     const text = CLIPTEXTS[it.ct] || "";
-    btns += `<button class="pf ${it.cls}" data-ct="${it.ct}">
-      <span class="pf-top"><span class="pl">${escapeHtml(it.label)}</span><span class="tap">탭하면 복사 📋</span></span>
-      <span class="pv">${escapeHtml(text)}</span>
-    </button>`;
+    btns += `<div class="pf ${it.cls}">
+      <div class="pf-top"><span class="pl">${escapeHtml(it.label)}</span><button class="cp" type="button" data-ct="${it.ct}">복사</button></div>
+      <div class="pvw"><div class="pv">${escapeHtml(text)}</div></div>
+    </div>`;
   });
   let badge = "";
   if (HAS_STATUS){
@@ -211,7 +218,7 @@ function buildCard(g){
       ${badge}${CHEV}
     </div>
     <div class="body">${btns}</div>`;
-  card.querySelector(".head").addEventListener("click", () => card.classList.toggle("open"));
+  card.querySelector(".head").addEventListener("click", () => { card.classList.toggle("open"); markMore(card); });
   return card;
 }
 
@@ -221,7 +228,14 @@ function renderChunk(){
   for (let k = rendered; k < end; k++) frag.appendChild(buildCard(view[k]));
   listEl.appendChild(frag);
   rendered = end; updateSentinel();
+  markMore();
 }
+function markMore(root=listEl){
+  root.querySelectorAll(".pv").forEach(pv => {
+    pv.parentElement.classList.toggle("more", pv.scrollTop + pv.clientHeight < pv.scrollHeight - 2);
+  });
+}
+listEl.addEventListener("scroll", e => { if (e.target.classList && e.target.classList.contains("pv")) markMore(e.target.parentElement); }, true);
 function updateSentinel(){
   if (rendered < view.length){ sentinel.style.display = "block"; if (!loading) sentinel.innerHTML = ""; }
   else { sentinel.style.display = "none"; sentinel.innerHTML = ""; }
@@ -271,18 +285,15 @@ function showToast(msg, err=false){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=> toastEl.className="toast", 1500);
 }
 listEl.addEventListener("click", async (e) => {
-  const pf = e.target.closest(".pf");
-  if (!pf) return;
-  const text = CLIPTEXTS[+pf.dataset.ct];
-  const ok = await copyText(text);
+  const btn = e.target.closest(".cp");
+  if (!btn) return;
+  const pf = btn.closest(".pf");
+  const ok = await copyText(CLIPTEXTS[+btn.dataset.ct]);
   if (ok){
-    pf.classList.add("copied");
-    const tap = pf.querySelector(".tap");
-    const prev = tap ? tap.textContent : "";
-    if (tap) tap.textContent = "복사됨 ✓";
+    pf.classList.add("copied"); btn.textContent = "복사됨 ✓";
     showToast("복사됐어요 ✓ — 붙여넣기만 하면 끝");
-    setTimeout(()=>{ pf.classList.remove("copied"); if (tap) tap.textContent = prev; }, 1400);
-  } else showToast("복사 실패 — 길게 눌러 선택하세요", true);
+    setTimeout(()=>{ pf.classList.remove("copied"); btn.textContent = "복사"; }, 1400);
+  } else showToast("복사 실패 — 내용을 길게 눌러 선택하세요", true);
 });
 
 let debTimer;
