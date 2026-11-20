@@ -20,9 +20,6 @@ jobs:
       - name: Pull Google Sheets tabs → CSV
         run: |
           curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1439007533&single=true&output=csv" -o first.csv
-          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=1225639265&single=true&output=csv" -o second.csv
-          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=244099713&single=true&output=csv" -o third.csv
-          curl -sL "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKK3_XAfJ24uqqiCOTKO2rrsS7GnjXmq6zuL6pZj9NAB0MM8DiIH4aCcySZ6U9Ihh0cmTmZZ8IOiee/pub?gid=2094671212&single=true&output=csv" -o fourth.csv
 
       - name: Sanity check (must look like CSV, not an error page)
         run: |
